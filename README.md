@@ -1,0 +1,1 @@
+# cb-coverage-jenkins-plugin
