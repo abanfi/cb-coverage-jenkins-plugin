@@ -4,6 +4,8 @@
 package com.intland.jenkins.api;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -78,8 +80,9 @@ public class CodebeamerApiClient {
 		TrackerItemDto[] testCases = this.getTrackerItems(this.pluginConfiguration.getTestCaseTrackerId());
 		NodeMapping testCasesMap = null; // XUnitUtil.getNodeMapping(testCases);
 
-		Integer testSetId = this.findOrCreateTrackerItem(this.pluginConfiguration.getTestSetTrackerId(),
-				this.DEFAULT_TESTSET_NAME + "-" + buildIdentifier, "--");
+		Integer testSetId = null;
+		/// this.findOrCreateTrackerItem(this.pluginConfiguration.getTestSetTrackerId(),
+		// this.DEFAULT_TESTSET_NAME + "-" + buildIdentifier, "--");
 		Map<String, Integer> testCasesForCurrentTestRun = new HashMap<>();
 		for (TestResultItem test : tests.getTestResultItems()) {
 			Integer testCaseId = this.findOrCreateTrackerItemInTree(test.getFullName(),
@@ -145,25 +148,44 @@ public class CodebeamerApiClient {
 		return parentItem;
 	}
 
-	private Integer findOrCreateTrackerItem(Integer trackerId, String name, String description) throws IOException {
-		String urlParamName = null;// XUnitUtil.encodeParam(name);
+	/**
+	 * Finds the tracker item by name in the specified tracker. If it is not
+	 * exists the it create with the specified parameters
+	 *
+	 * @param trackerId
+	 *            the item's tracker id
+	 * @param name
+	 *            the tracker's name
+	 * @param description
+	 *            the new item's description
+	 * @return the found or the newly created tracker item
+	 * @throws IOException
+	 */
+	public TrackerItemDto findOrCreateTrackerItem(Integer trackerId, String name, String description)
+			throws IOException {
+		String urlParamName = this.encodeParam(name);
 		String content = this
 				.get(String.format(this.baseUrl + "/rest/tracker/%s/items/or/name=%s/page/1", trackerId, urlParamName));
 		PagedTrackerItemsDto pagedTrackerItemsDto = this.objectMapper.readValue(content, PagedTrackerItemsDto.class);
 
-		Integer result;
 		if (pagedTrackerItemsDto.getTotal() > 0) {
-			result = pagedTrackerItemsDto.getItems()[0].getId();
+			return pagedTrackerItemsDto.getItems()[0];
 		} else {
 			TestRunDto testConfig = new TestRunDto();
 			testConfig.setName(name);
 			testConfig.setTracker("/tracker/" + trackerId);
 			testConfig.setDescription(description);
-			TrackerItemDto trackerItemDto = this.postTrackerItem(testConfig);
-			result = trackerItemDto.getId();
+			return this.postTrackerItem(testConfig);
 		}
+	}
 
-		return result;
+	public String encodeParam(String param) {
+		try {
+			String result = URLEncoder.encode(param, "UTF-8");
+			return result.replaceAll("\\+", "%20");
+		} catch (UnsupportedEncodingException e) {
+			return param;
+		}
 	}
 
 	private String getBuildIdentifier(AbstractBuild<?, ?> build) {
@@ -214,6 +236,35 @@ public class CodebeamerApiClient {
 		return this.post(content);
 	}
 
+	/**
+	 * Get all tracker item from the specified tracker
+	 *
+	 * @param trackerId
+	 *            the tracker's id
+	 * @return all of the tracker item in the tracker
+	 * @throws IOException
+	 */
+	public List<TrackerItemDto> getTrackerItemList(Integer trackerId) throws IOException {
+
+		String url = "%s/rest/tracker/%s/items/page/%s?pagesize=500";
+
+		List<TrackerItemDto> items = new ArrayList<>();
+		int total = 0;
+		int page = 1;
+		do {
+			// get a page from codebeamer
+			String json = this.get(String.format(url, this.baseUrl, trackerId, page));
+			PagedTrackerItemsDto pagedTrackerItemsDto = this.objectMapper.readValue(json, PagedTrackerItemsDto.class);
+			total = pagedTrackerItemsDto.getTotal();
+			items.addAll(Arrays.asList(pagedTrackerItemsDto.getItems()));
+
+			page++;
+		} while (items.size() < total);
+
+		return items;
+	}
+
+	@Deprecated
 	public TrackerItemDto[] getTrackerItems(Integer trackerId) throws IOException {
 		String url = String.format("%s/rest/tracker/%s/items/page/1?pagesize=500", this.baseUrl, trackerId);
 		String json = this.get(url);
@@ -298,6 +349,11 @@ public class CodebeamerApiClient {
 		post.releaseConnection();
 
 		return this.objectMapper.readValue(json, TrackerItemDto.class);
+	}
+
+	public TrackerItemDto put(Object dto) throws IOException {
+		String content = this.objectMapper.writeValueAsString(dto);
+		return this.put(content);
 	}
 
 	private TrackerItemDto put(String content) throws IOException {

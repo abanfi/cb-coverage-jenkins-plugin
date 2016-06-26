@@ -18,6 +18,7 @@ import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
 
+import com.intland.jenkins.MarkupBuilder;
 import com.intland.jenkins.coverage.ICoverageCoverter;
 import com.intland.jenkins.coverage.model.CoverageBase;
 import com.intland.jenkins.coverage.model.CoverageReport;
@@ -81,6 +82,7 @@ public class JacocoResultParser implements ICoverageCoverter {
 		}
 
 		this.setCoverage(coverageReport, report.getCounter());
+		coverageReport.setMarkup(MarkupBuilder.genearteSummary(report));
 
 		return coverageReport;
 	}
@@ -88,23 +90,25 @@ public class JacocoResultParser implements ICoverageCoverter {
 	private DirectoryCoverage converPackage(Package onePackage) {
 
 		DirectoryCoverage directoryCoverage = new DirectoryCoverage();
-		directoryCoverage.setName(onePackage.getName());
+		directoryCoverage.setName(StringUtils.replace(onePackage.getName(), "/", "."));
 
 		for (Class clazz : onePackage.getClazz()) {
-			directoryCoverage.getFiles().add(this.converClass(clazz));
+			directoryCoverage.getFiles().add(this.converClass(clazz, onePackage.getName()));
 		}
 
 		this.setCoverage(directoryCoverage, onePackage.getCounter());
+		directoryCoverage.setMarkup(MarkupBuilder.genearteSummary(onePackage));
 
 		return directoryCoverage;
 	}
 
-	private CoverageBase converClass(Class clazz) {
+	private CoverageBase converClass(Class clazz, String packageName) {
 
 		CoverageBase base = new CoverageBase();
-		base.setName(clazz.getName());
+		base.setName(StringUtils.replace(clazz.getName(), packageName + "/", ""));
 
 		this.setCoverage(base, clazz.getCounter());
+		base.setMarkup(MarkupBuilder.genearteSummary(clazz));
 
 		return base;
 	}
