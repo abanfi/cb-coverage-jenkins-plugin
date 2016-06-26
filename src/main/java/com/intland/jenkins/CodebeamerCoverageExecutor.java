@@ -280,8 +280,9 @@ public class CodebeamerCoverageExecutor {
 			context.logFormat("Test case with name is already exist: <%s>", trackerItemDto.getId());
 
 			// check parent
-			if (((trackerItemDto.getParent() == null) && (parent == null))
-					|| trackerItemDto.getParent().equals(parent)) {
+			TrackerItemDto trackerDtoParent = trackerItemDto.getParent();
+			if (((trackerDtoParent == null) && (parent == null))
+					|| ((trackerDtoParent != null) && trackerDtoParent.equals(parent))) {
 				context.logFormat("Test case with the correct parent is exists: <%s>", trackerItemDto.getId());
 				return trackerItemDto;
 			}
@@ -309,7 +310,8 @@ public class CodebeamerCoverageExecutor {
 
 		Integer testCaseTrackerId = context.getConfiguration().getTestCaseTrackerId();
 		// TODO create normal test case DTO
-		TestRunDto testCaseDto = new TestRunDto(name, "/tracker/" + testCaseTrackerId, parentTestCase.getId());
+		TestRunDto testCaseDto = new TestRunDto(name, "/tracker/" + testCaseTrackerId,
+				parentTestCase == null ? null : parentTestCase.getId());
 		testCaseDto.setDescription("--");
 		testCaseDto.setType("Automated");
 
