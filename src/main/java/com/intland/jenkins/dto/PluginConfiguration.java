@@ -17,6 +17,13 @@ public class PluginConfiguration {
 	private Integer testConfigurationId;
 	private String[] includedPackages;
 	private String[] excludedPackages;
+	private Integer successInstructionCoverage;
+	private Integer successBranchCoverage;
+	private Integer successComplexityCoverage;
+	private Integer successLineCoverage;
+	private Integer successMethodCoverage;
+	private Integer successClassCoverage;
+	private String jenkinsUrlBase;
 
 	public PluginConfiguration() {
 	}
@@ -113,5 +120,61 @@ public class PluginConfiguration {
 
 	public void setReportPath(String reportPath) {
 		this.reportPath = reportPath;
+	}
+
+	public Integer getSuccessInstructionCoverage() {
+		return this.successInstructionCoverage;
+	}
+
+	public void setSuccessInstructionCoverage(Integer successInstructionCoverage) {
+		this.successInstructionCoverage = successInstructionCoverage;
+	}
+
+	public Integer getSuccessBranchCoverage() {
+		return this.successBranchCoverage;
+	}
+
+	public void setSuccessBranchCoverage(Integer successBranchCoverage) {
+		this.successBranchCoverage = successBranchCoverage;
+	}
+
+	public Integer getSuccessComplexityCoverage() {
+		return this.successComplexityCoverage;
+	}
+
+	public void setSuccessComplexityCoverage(Integer successComplexityCoverage) {
+		this.successComplexityCoverage = successComplexityCoverage;
+	}
+
+	public Integer getSuccessLineCoverage() {
+		return this.successLineCoverage;
+	}
+
+	public void setSuccessLineCoverage(Integer successLineCoverage) {
+		this.successLineCoverage = successLineCoverage;
+	}
+
+	public Integer getSuccessMethodCoverage() {
+		return this.successMethodCoverage;
+	}
+
+	public void setSuccessMethodCoverage(Integer successMethodCoverage) {
+		this.successMethodCoverage = successMethodCoverage;
+	}
+
+	public Integer getSuccessClassCoverage() {
+		return this.successClassCoverage;
+	}
+
+	public void setSuccessClassCoverage(Integer successClassCoverage) {
+		this.successClassCoverage = successClassCoverage;
+	}
+
+	public String getJenkinsUrlBase() {
+		return this.jenkinsUrlBase;
+	}
+
+	public void setJenkinsUrlBase(String jenkinsUrlBase) {
+		this.jenkinsUrlBase = jenkinsUrlBase;
 	}
 }

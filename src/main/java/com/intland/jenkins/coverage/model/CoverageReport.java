@@ -20,4 +20,17 @@ public class CoverageReport extends CoverageBase {
 		return "SUCCESS";
 	}
 
+	public String toSummary() {
+		int directoryCount = 0;
+		int classesCount = 0;
+
+		for (DirectoryCoverage directoryCoverage : this.directories) {
+			directoryCount++;
+			classesCount += directoryCoverage.getFiles().size();
+		}
+
+		return String.format("Report <%s> contains %d directories and %d classes!", this.getName(), directoryCount,
+				classesCount);
+	}
+
 }

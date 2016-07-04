@@ -37,6 +37,10 @@
       <f:textbox />
     </f:entry>
     
+    <f:entry title="Jenkins Base URL" field="jenkinsUrlBase">
+      <f:textbox />
+    </f:entry>
+    
     <f:entry title="Include Packages (optional)" field="includedPackages" help="/plugin/codebeamer-xunit-importer/help/help-includedPackages.html">
       <f:textbox />
     </f:entry>
@@ -44,5 +48,48 @@
     <f:entry title="Exclude Packages (optional)" field="excludedPackages" help="/plugin/codebeamer-xunit-importer/help/help-excludedPackages.html">
       <f:textbox />
     </f:entry>
+    
+    <f:entry title="Success Limit (percent)">
+		<table width="78%">
+	      	<col width="11%"/>
+	      	<col width="11%"/>
+	      	<col width="11%"/>
+	      	<col width="11%"/>
+	      	<col width="11%"/>
+	      	<col width="11%"/>
+        	<thead>
+            	<tr>
+	                <td width="11%">Instruction</td>
+	                <td width="11%">Branch</td>
+	                <td width="11%">Complexity</td>
+	                <td width="11%">Line</td>
+	                <td width="11%">Method</td>
+	                <td width="11%">Class</td>
+            	</tr>
+       		</thead>
+		    <tbody>
+		    	<tr>
+	                <td>
+	                    <f:textbox field="successInstructionCoverage" default="0" />
+	                </td>
+	                <td>
+	                    <f:textbox field="successBranchCoverage" default="0" />
+	                </td>
+	                <td>
+	                    <f:textbox field="successComplexityCoverage" default="0" />
+	                </td>
+	                <td>
+	                    <f:textbox field="successLineCoverage" default="0" />
+	                </td>
+	                <td>
+	                    <f:textbox field="successMethodCoverage" default="0" />
+	                </td>
+	                <td>
+	                    <f:textbox field="successClassCoverage" default="0" />
+	                </td>
+	            </tr>
+	        </tbody>
+		</table>
+  </f:entry>
     
 </j:jelly>

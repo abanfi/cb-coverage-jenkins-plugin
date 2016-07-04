@@ -37,6 +37,14 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 	private Integer testConfigurationId;
 	private String includedPackages;
 	private String excludedPackages;
+	private String jenkinsUrlBase;
+
+	private Integer successInstructionCoverage;
+	private Integer successBranchCoverage;
+	private Integer successComplexityCoverage;
+	private Integer successLineCoverage;
+	private Integer successMethodCoverage;
+	private Integer successClassCoverage;
 
 	@DataBoundConstructor
 	public CodeBeamerCoveragePublisher() {
@@ -50,6 +58,13 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 		this.testConfigurationId = null;
 		this.includedPackages = StringUtils.EMPTY;
 		this.excludedPackages = StringUtils.EMPTY;
+		this.successInstructionCoverage = 0;
+		this.successBranchCoverage = 0;
+		this.successComplexityCoverage = 0;
+		this.successLineCoverage = 0;
+		this.successMethodCoverage = 0;
+		this.successClassCoverage = 0;
+		this.jenkinsUrlBase = StringUtils.EMPTY;
 	}
 
 	@Override
@@ -72,6 +87,13 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 		configuration.setTestConfigurationId(this.testConfigurationId);
 		configuration.setTestRunTrackerId(this.testRunTrackerId);
 		configuration.setTestSetTrackerId(this.testSetTrackerId);
+		configuration.setSuccessBranchCoverage(this.successBranchCoverage);
+		configuration.setSuccessClassCoverage(this.successClassCoverage);
+		configuration.setSuccessComplexityCoverage(this.successComplexityCoverage);
+		configuration.setSuccessInstructionCoverage(this.successInstructionCoverage);
+		configuration.setSuccessLineCoverage(this.successLineCoverage);
+		configuration.setSuccessMethodCoverage(this.successMethodCoverage);
+		configuration.setJenkinsUrlBase(this.jenkinsUrlBase);
 		context.setConfiguration(configuration);
 
 		// execute the coverage
@@ -292,6 +314,69 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 
 			return result;
 		}
+	}
+
+	public Integer getSuccessInstructionCoverage() {
+		return this.successInstructionCoverage;
+	}
+
+	@DataBoundSetter
+	public void setSuccessInstructionCoverage(Integer successInstructionCoverage) {
+		this.successInstructionCoverage = successInstructionCoverage;
+	}
+
+	public Integer getSuccessBranchCoverage() {
+		return this.successBranchCoverage;
+	}
+
+	@DataBoundSetter
+	public void setSuccessBranchCoverage(Integer successBranchCoverage) {
+		this.successBranchCoverage = successBranchCoverage;
+	}
+
+	public Integer getSuccessComplexityCoverage() {
+		return this.successComplexityCoverage;
+	}
+
+	@DataBoundSetter
+	public void setSuccessComplexityCoverage(Integer successComplexityCoverage) {
+		this.successComplexityCoverage = successComplexityCoverage;
+	}
+
+	public Integer getSuccessLineCoverage() {
+		return this.successLineCoverage;
+	}
+
+	@DataBoundSetter
+	public void setSuccessLineCoverage(Integer successLineCoverage) {
+		this.successLineCoverage = successLineCoverage;
+	}
+
+	public Integer getSuccessMethodCoverage() {
+		return this.successMethodCoverage;
+	}
+
+	@DataBoundSetter
+	public void setSuccessMethodCoverage(Integer successMethodCoverage) {
+		this.successMethodCoverage = successMethodCoverage;
+	}
+
+	public Integer getSuccessClassCoverage() {
+		return this.successClassCoverage;
+	}
+
+	@DataBoundSetter
+	public void setSuccessClassCoverage(Integer successClassCoverage) {
+		this.successClassCoverage = successClassCoverage;
+	}
+
+	public String getJenkinsUrlBase() {
+		return this.jenkinsUrlBase;
+	}
+
+	@DataBoundSetter
+	public void setJenkinsUrlBase(String jenkinsUrlBase) {
+		this.jenkinsUrlBase = jenkinsUrlBase;
 	}
 
 }

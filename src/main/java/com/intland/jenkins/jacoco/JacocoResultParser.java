@@ -18,13 +18,14 @@ import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
 
-import com.intland.jenkins.MarkupBuilder;
+import com.intland.jenkins.HTMLMarkupBuilder;
 import com.intland.jenkins.coverage.ICoverageCoverter;
 import com.intland.jenkins.coverage.model.CoverageBase;
 import com.intland.jenkins.coverage.model.CoverageReport;
 import com.intland.jenkins.coverage.model.DirectoryCoverage;
 import com.intland.jenkins.jacoco.model.Class;
 import com.intland.jenkins.jacoco.model.Counter;
+import com.intland.jenkins.jacoco.model.Group;
 import com.intland.jenkins.jacoco.model.Package;
 import com.intland.jenkins.jacoco.model.Report;
 
@@ -75,6 +76,14 @@ public class JacocoResultParser implements ICoverageCoverter {
 	private CoverageReport convertToCoverageReport(Report report) {
 
 		CoverageReport coverageReport = new CoverageReport();
+		coverageReport.setName(report.getName());
+
+		List<Group> groups = report.getGroup();
+		for (Group group : groups) {
+			for (Package pack : group.getPackage()) {
+				coverageReport.getDirectories().add(this.converPackage(pack));
+			}
+		}
 
 		List<Package> packages = report.getPackage();
 		for (Package onePackage : packages) {
@@ -82,7 +91,7 @@ public class JacocoResultParser implements ICoverageCoverter {
 		}
 
 		this.setCoverage(coverageReport, report.getCounter());
-		coverageReport.setMarkup(MarkupBuilder.genearteSummary(report));
+		coverageReport.setMarkup(HTMLMarkupBuilder.genearteSummary(report));
 
 		return coverageReport;
 	}
@@ -97,7 +106,7 @@ public class JacocoResultParser implements ICoverageCoverter {
 		}
 
 		this.setCoverage(directoryCoverage, onePackage.getCounter());
-		directoryCoverage.setMarkup(MarkupBuilder.genearteSummary(onePackage));
+		directoryCoverage.setMarkup(HTMLMarkupBuilder.genearteSummary(onePackage));
 
 		return directoryCoverage;
 	}
@@ -108,16 +117,41 @@ public class JacocoResultParser implements ICoverageCoverter {
 		base.setName(StringUtils.replace(clazz.getName(), packageName + "/", ""));
 
 		this.setCoverage(base, clazz.getCounter());
-		base.setMarkup(MarkupBuilder.genearteSummary(clazz));
+		base.setMarkup(HTMLMarkupBuilder.genearteSummary(clazz));
 
 		return base;
 	}
 
 	private void setCoverage(CoverageBase base, List<Counter> counters) {
 		for (Counter counter : counters) {
-			if (StringUtils.equalsIgnoreCase(counter.getType(), "line")) {
-				Integer all = counter.getCovered() + counter.getMissed();
-				base.setLineCoverage(counter.getCovered() / (double) all);
+			String type = StringUtils.lowerCase(counter.getType());
+			switch (type) {
+			case "line":
+				base.setLineCovered(counter.getCovered());
+				base.setLineMissed(counter.getMissed());
+				break;
+			case "instruction":
+				base.setInstructionCovered(counter.getCovered());
+				base.setInstructionMissed(counter.getMissed());
+				break;
+			case "complexity":
+				base.setComplexityCovered(counter.getCovered());
+				base.setComplexityMissed(counter.getMissed());
+				break;
+			case "method":
+				base.setMethodCovered(counter.getCovered());
+				base.setMethodMissed(counter.getMissed());
+				break;
+			case "branch":
+				base.setBranchCovered(counter.getCovered());
+				base.setBranchMissed(counter.getMissed());
+				break;
+			case "class":
+				base.setClassCovered(counter.getCovered());
+				base.setClassMissed(counter.getMissed());
+				break;
+			default:
+				break;
 			}
 		}
 	}

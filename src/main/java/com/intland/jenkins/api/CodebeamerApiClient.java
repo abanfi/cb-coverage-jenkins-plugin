@@ -53,7 +53,7 @@ import hudson.model.BuildListener;
 
 public class CodebeamerApiClient {
 	private final String DEFAULT_TESTSET_NAME = "Coverage-TestSet";
-	private final int HTTP_TIMEOUT = 10000;
+	private final int HTTP_TIMEOUT = 60000;
 	private HttpClient client;
 	private RequestConfig requestConfig;
 	private PluginConfiguration pluginConfiguration;
@@ -344,11 +344,16 @@ public class CodebeamerApiClient {
 		stringEntity.setContentType("application/json");
 		post.setEntity(stringEntity);
 
-		HttpResponse response = this.client.execute(post);
-		String json = new BasicResponseHandler().handleResponse(response);
-		post.releaseConnection();
+		try {
+			HttpResponse response = this.client.execute(post);
+			String json = new BasicResponseHandler().handleResponse(response);
+			post.releaseConnection();
+			return this.objectMapper.readValue(json, TrackerItemDto.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 
-		return this.objectMapper.readValue(json, TrackerItemDto.class);
 	}
 
 	public TrackerItemDto put(Object dto) throws IOException {

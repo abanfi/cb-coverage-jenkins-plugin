@@ -69,7 +69,16 @@ public class ExecutionContext {
 	 * @return
 	 */
 	public String getBuildIdentifier() {
-		return this.build.getProject().getName() + "#" + this.build.getNumber();
+		return this.getJobName() + " #" + this.build.getNumber();
+	}
+
+	/**
+	 * Get the current job's name
+	 * 
+	 * @return
+	 */
+	public String getJobName() {
+		return this.build.getProject().getName();
 	}
 
 }

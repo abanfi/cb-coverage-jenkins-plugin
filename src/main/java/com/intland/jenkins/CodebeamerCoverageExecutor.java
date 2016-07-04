@@ -6,8 +6,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
@@ -39,14 +43,19 @@ public class CodebeamerCoverageExecutor {
 	 */
 	public static void execute(ExecutionContext context) throws IOException {
 
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
 		context.log("Start to process coverage report.");
 
 		// get and check the report
 		CoverageReport report = loadReport(context);
+		stopWatch.stop();
+
 		if (report == null) {
 			context.log("Report cannot be parsed or cannot be found! Execution stopping.");
 			return;
 		}
+		context.logFormat("%s Parsing finished in %d ms!", report.toSummary(), stopWatch.getTime());
 
 		context.log("Load existing test cases.");
 		CodebeamerApiClient client = context.getClient();
@@ -82,18 +91,66 @@ public class CodebeamerCoverageExecutor {
 
 			// create test for directory (package in java)
 			Integer testCaseId = testCasesForCurrentResults.get(directory.getName());
+
+			StopWatch stopWatch = new StopWatch();
+			stopWatch.start();
+			context.logFormat("Create Test Run for directory : <%s>", directory.getName());
 			createTestCaseRun(testConfigurationId, coverageTestSet, coverageTestRun, directory, testCaseId, context);
+
+			stopWatch.stop();
+			context.logFormat("Test run succesfully created in %d ms", stopWatch.getNanoTime());
 
 			// create test for file items (classes in java)
 			for (CoverageBase fileCoverage : directory.getFiles()) {
+
+				stopWatch = new StopWatch();
+				stopWatch.start();
+				context.logFormat("Create Test Run for file : <%s>", fileCoverage.getName());
 				testCaseId = testCasesForCurrentResults.get(fileCoverage.getName());
+
+				// FIXME just for demo, it is clearly wrong in here
+				appendJenkinsUrl(fileCoverage, directory, context);
 				createTestCaseRun(testConfigurationId, coverageTestSet, coverageTestRun, fileCoverage, testCaseId,
 						context);
+
+				stopWatch.stop();
+				context.logFormat("Test run succesfully created in %d ms", stopWatch.getNanoTime());
 			}
 		}
 
 		updateTestSetTestCases(coverageTestSet, testCasesForCurrentResults.values(), context);
 		updateTrackerItemStatus(coverageTestSet, "Completed", context);
+	}
+
+	/**
+	 *
+	 * @param coverageData
+	 * @param parentCoverage
+	 * @param context
+	 */
+	private static void appendJenkinsUrl(CoverageBase coverageData, DirectoryCoverage parentCoverage,
+			ExecutionContext context) {
+		String jenkinsBase = context.getConfiguration().getJenkinsUrlBase();
+		if (StringUtils.isNotBlank(jenkinsBase)) {
+			StringBuilder builder = new StringBuilder();
+			builder.append("<br><br><a class=\"actionLink\" href=\"");
+			builder.append(jenkinsBase);
+			builder.append((jenkinsBase.endsWith("/") ? "" : "/") + "job/");
+			builder.append(context.getJobName());
+			builder.append("/ws/");
+
+			String reportPath = StringUtils.replace(context.getConfiguration().getReportPath(), "\\", "/");
+			reportPath = StringUtils.substring(reportPath, 0, reportPath.lastIndexOf("/"));
+			builder.append(reportPath);
+			builder.append("/");
+			builder.append(parentCoverage.getName());
+			builder.append("/");
+			builder.append(coverageData.getName());
+			builder.append(".java.html\"> Report Details </a>");
+
+			coverageData.setMarkup(coverageData.getMarkup() + builder.toString());
+		}
+
 	}
 
 	private static void updateTrackerItemStatus(TrackerItemDto coverageTestSet, String status, ExecutionContext context)
@@ -121,18 +178,74 @@ public class CodebeamerCoverageExecutor {
 			throws IOException {
 
 		Integer testRunTrackerId = context.getConfiguration().getTestRunTrackerId();
-		// TODO calculate status
 		TestRunDto testRunDto = new TestRunDto(coverageBase.getName(), coverageTestRun.getId(), testRunTrackerId,
-				Arrays.asList(new Integer[] { testCaseId }), testConfigurationId, SUCCESS_STATUS);
+				Arrays.asList(new Integer[] { testCaseId }), testConfigurationId,
+				calculateStatus(coverageBase, context.getConfiguration()));
 		testRunDto.setDescription(coverageBase.getMarkup());
-		testRunDto.setDescFormat("W");
+		testRunDto.setDescFormat("Html");
 		testRunDto.setTestSet(coverageTestSet.getId());
+		context.logFormat("Generated markup character count: <%d>", coverageBase.getMarkup().length());
 
 		// create test run item
 		TrackerItemDto testRunItem = context.getClient().postTrackerItem(testRunDto);
 		TestCaseDto testCaseDto = new TestCaseDto(testRunItem.getId(), "Completed");
 		testCaseDto.setSpentMillis(0l);
 		context.getClient().put(testCaseDto);
+	}
+
+	/**
+	 * Calculates the coverage status for the specified coverage base object
+	 * using the build configuration
+	 *
+	 * @param coverageBase
+	 *            the coverage object to evaluate
+	 * @param configuration
+	 *            the plugin's build configuration
+	 * @return the coverage status as string (Passed or Failed)
+	 */
+	private static String calculateStatus(CoverageBase coverageBase, PluginConfiguration configuration) {
+
+		boolean result = true;
+		result &= checkStatus(configuration.getSuccessBranchCoverage(), coverageBase.getBranchCovered(),
+				coverageBase.getBranchMissed());
+		result &= checkStatus(configuration.getSuccessClassCoverage(), coverageBase.getClassCovered(),
+				coverageBase.getClassMissed());
+		result &= checkStatus(configuration.getSuccessComplexityCoverage(), coverageBase.getComplexityCovered(),
+				coverageBase.getComplexityMissed());
+		result &= checkStatus(configuration.getSuccessInstructionCoverage(), coverageBase.getInstructionCovered(),
+				coverageBase.getInstructionMissed());
+		result &= checkStatus(configuration.getSuccessLineCoverage(), coverageBase.getLineCovered(),
+				coverageBase.getLineMissed());
+		result &= checkStatus(configuration.getSuccessMethodCoverage(), coverageBase.getMethodCovered(),
+				coverageBase.getMethodMissed());
+
+		return result ? SUCCESS_STATUS : FAILED_STATUS;
+	}
+
+	/**
+	 * Calculates the percent from the given missed and covered count value and
+	 * returns this percent is bigger or smaller than the limit
+	 *
+	 * @param successLimit
+	 *            the limit
+	 * @param covered
+	 *            covered count
+	 * @param missed
+	 *            missed count
+	 * @return true, if the coverage percentage is above the limit, otherwise
+	 *         false
+	 */
+	private static boolean checkStatus(Integer successLimit, Integer covered, Integer missed) {
+
+		// if the coverage is not calculated for this category
+		if ((covered == null) || (missed == null)) {
+			return true;
+		}
+
+		Integer all = covered + missed;
+		Double percent = (covered / (double) all) * 100d;
+
+		return successLimit <= percent.intValue();
 	}
 
 	/**
@@ -154,13 +267,13 @@ public class CodebeamerCoverageExecutor {
 		Integer testRunTrackerId = context.getConfiguration().getTestRunTrackerId();
 		Integer testConfigurationId = context.getConfiguration().getTestConfigurationId();
 
-		// TODO compute status
 		TestRunDto testRunDto = new TestRunDto(context.getBuildIdentifier(), null, testRunTrackerId,
-				testCasesForCurrentResults.values(), testConfigurationId, SUCCESS_STATUS);
+				testCasesForCurrentResults.values(), testConfigurationId,
+				calculateStatus(report, context.getConfiguration()));
 
 		testRunDto.setTestSet(testSetDto.getId());
 		testRunDto.setDescription(report.getMarkup());
-		testRunDto.setDescFormat("W");
+		testRunDto.setDescFormat("Html");
 		return context.getClient().postTrackerItem(testRunDto);
 	}
 
@@ -197,16 +310,6 @@ public class CodebeamerCoverageExecutor {
 	private static Map<String, Integer> collectTestCaseIds(CoverageReport report, List<TrackerItemDto> testCases,
 			ExecutionContext context) throws IOException {
 
-		// create a test case map by name
-		ImmutableMap<String, TrackerItemDto> testCasesMapByName = Maps.uniqueIndex(testCases,
-				new Function<TrackerItemDto, String>() {
-
-					@Override
-					public String apply(TrackerItemDto itemDto) {
-						return itemDto.getName();
-					}
-				});
-
 		// create a test case map by id
 		ImmutableMap<Integer, TrackerItemDto> testCasesMapById = Maps.uniqueIndex(testCases,
 				new Function<TrackerItemDto, Integer>() {
@@ -230,6 +333,18 @@ public class CodebeamerCoverageExecutor {
 			context.log("No parent node is found. The test caase root will be the tracker root node.");
 		}
 
+		Iterator<TrackerItemDto> iterator = testCases.iterator();
+		Map<String, TrackerItemDto> testCasesMapByName = new HashMap<>();
+		while (iterator.hasNext()) {
+			TrackerItemDto trackerItemDto = iterator.next();
+
+			if (isChildOf(parent, trackerItemDto, testCasesMapById)) {
+				String canonicalName = calculateCanonicalName(parent, trackerItemDto, testCasesMapById);
+				testCasesMapByName.put(canonicalName, trackerItemDto);
+			}
+
+		}
+
 		Map<String, Integer> testCaseMap = new HashMap<>();
 
 		// resolve ids or create new test cases
@@ -243,7 +358,7 @@ public class CodebeamerCoverageExecutor {
 			// get test case for file items (classes in java)
 			for (CoverageBase fileCoverage : directory.getFiles()) {
 				String fileName = fileCoverage.getName();
-				TrackerItemDto fileTestCaseDto = searchForOrCreateTestCase(fileName, testCaseDto, context,
+				TrackerItemDto fileTestCaseDto = searchForOrCreateTestCase(name + "." + fileName, testCaseDto, context,
 						testCasesMapByName);
 
 				testCaseMap.put(fileName, fileTestCaseDto.getId());
@@ -251,6 +366,73 @@ public class CodebeamerCoverageExecutor {
 		}
 
 		return testCaseMap;
+	}
+
+	/**
+	 * Calculates the canonical name of the specified test case
+	 *
+	 * @param exportRootTestCase
+	 *            the export root test case
+	 * @param testCaseDto
+	 *            the test case to check
+	 * @param testCasesMapById
+	 *            all test case mapped by id
+	 * @return
+	 */
+	private static String calculateCanonicalName(TrackerItemDto exportRootTestCase, TrackerItemDto testCaseDto,
+			ImmutableMap<Integer, TrackerItemDto> testCasesMapById) {
+
+		// if the export root node is null and the item's parent is null then
+		// return the item name
+		if ((testCaseDto.getParent() == null) && (exportRootTestCase == null)) {
+			return testCaseDto.getName();
+		}
+
+		// if the parent is reached
+		Integer itemParentId = testCaseDto.getParent().getId();
+		if ((exportRootTestCase != null) && itemParentId.equals(exportRootTestCase.getId())) {
+			return testCaseDto.getName();
+		}
+
+		// call the method to the parent
+		return calculateCanonicalName(exportRootTestCase, testCasesMapById.get(itemParentId), testCasesMapById) + "."
+				+ testCaseDto.getName();
+	}
+
+	/**
+	 * Recursively check the test case is the parent of the given sub test case
+	 *
+	 * @param exportRootTestCase
+	 *            the export root test case
+	 * @param testCaseDto
+	 *            the test case to check
+	 * @param testCasesMapById
+	 *            all test case mapped by id
+	 * @return
+	 */
+	private static boolean isChildOf(TrackerItemDto exportRootTestCase, TrackerItemDto testCaseDto,
+			ImmutableMap<Integer, TrackerItemDto> testCasesMapById) {
+
+		// every node is the child of the root (null) node
+		if (exportRootTestCase == null) {
+			return true;
+		}
+
+		// we reach a top node without reach the specified parent node as an
+		// anchestor - the condition is false
+		if (testCaseDto.getParent() == null) {
+			return false;
+		}
+
+		// if the parent id is equal the specified parent id the condition is
+		// true
+		Integer itemParentId = testCaseDto.getParent().getId();
+		if (itemParentId.equals(exportRootTestCase.getId())) {
+			return true;
+		}
+
+		// call the method to the parent
+		return isChildOf(exportRootTestCase, testCasesMapById.get(itemParentId), testCasesMapById);
 	}
 
 	/**
@@ -277,18 +459,11 @@ public class CodebeamerCoverageExecutor {
 
 			// get test case item from the map
 			TrackerItemDto trackerItemDto = testCasesMapByName.get(name);
-			context.logFormat("Test case with name is already exist: <%s>", trackerItemDto.getId());
-
-			// check parent
-			TrackerItemDto trackerDtoParent = trackerItemDto.getParent();
-			if (((trackerDtoParent == null) && (parent == null))
-					|| ((trackerDtoParent != null) && trackerDtoParent.equals(parent))) {
-				context.logFormat("Test case with the correct parent is exists: <%s>", trackerItemDto.getId());
-				return trackerItemDto;
-			}
+			context.logFormat("Test case with name <%s> is already exist: <%s>", name, trackerItemDto.getId());
+			return trackerItemDto;
 		}
 
-		return createNewTestCase(name, parent, context);
+		return createNewTestCase(name, parent, testCasesMapByName, context);
 	}
 
 	/**
@@ -300,26 +475,50 @@ public class CodebeamerCoverageExecutor {
 	 * @param parentTestCase
 	 *            the parent URI (eg. /item/{id}) of the parent test case or
 	 *            null if the test case should create in the root
+	 * @param testCasesMapByName
 	 * @param context
 	 *            the context of the execution {@link ExecutionContext}
 	 * @return the created test case as a tracker item
 	 * @throws IOException
 	 */
 	private static TrackerItemDto createNewTestCase(String name, TrackerItemDto parentTestCase,
-			ExecutionContext context) throws IOException {
+			Map<String, TrackerItemDto> testCasesMapByName, ExecutionContext context) throws IOException {
 
 		Integer testCaseTrackerId = context.getConfiguration().getTestCaseTrackerId();
-		// TODO create normal test case DTO
-		TestRunDto testCaseDto = new TestRunDto(name, "/tracker/" + testCaseTrackerId,
-				parentTestCase == null ? null : parentTestCase.getId());
-		testCaseDto.setDescription("--");
-		testCaseDto.setType("Automated");
 
-		// create the tracker item and log the result
-		TrackerItemDto newTackerItem = context.getClient().postTrackerItem(testCaseDto);
-		context.logFormat("New test case <%d> created in tracker <%s> with parent <%s>", newTackerItem.getId(),
-				testCaseTrackerId, parentTestCase);
+		// split name parts - a name could be eg. a.b.c if the test case is
+		// represent a directory or package
+		String[] nameParts = StringUtils.split(name, ".");
+		Integer parentId = parentTestCase == null ? null : parentTestCase.getId();
+		String canonicalName = null;
+		TrackerItemDto newTackerItem = null;
 
+		// iterate over the parts
+		for (String part : nameParts) {
+
+			canonicalName = (canonicalName == null ? "" : canonicalName + ".") + part;
+			if (testCasesMapByName.containsKey(canonicalName)) {
+				TrackerItemDto trackerItemDto = testCasesMapByName.get(canonicalName);
+				parentId = trackerItemDto.getId();
+				continue;
+			}
+
+			// TODO create normal test case DTO
+			TestRunDto testCaseDto = new TestRunDto(part, "/tracker/" + testCaseTrackerId, parentId);
+			testCaseDto.setDescription("--");
+			testCaseDto.setType("Automated");
+
+			// create the tracker item and log the result
+			newTackerItem = context.getClient().postTrackerItem(testCaseDto);
+			context.logFormat("New test case <%d> created in tracker <%s> with parent <%s>", newTackerItem.getId(),
+					testCaseTrackerId, parentId);
+			parentId = newTackerItem.getId();
+
+			// update the test case map
+			testCasesMapByName.put(canonicalName, newTackerItem);
+		}
+
+		// return the last test case
 		return newTackerItem;
 	}
 
