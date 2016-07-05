@@ -79,9 +79,11 @@ public class JacocoResultParser implements ICoverageCoverter {
 		coverageReport.setName(report.getName());
 
 		List<Group> groups = report.getGroup();
-		for (Group group : groups) {
-			for (Package pack : group.getPackage()) {
-				coverageReport.getDirectories().add(this.converPackage(pack));
+		if (groups != null) {
+			for (Group group : groups) {
+				for (Package pack : group.getPackage()) {
+					coverageReport.getDirectories().add(this.converPackage(pack));
+				}
 			}
 		}
 

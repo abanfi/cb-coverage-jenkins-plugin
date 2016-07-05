@@ -304,7 +304,7 @@ public class CodebeamerApiClient {
 		return this.put(content);
 	}
 
-	private TrackerItemDto updateTrackerItemStatus(Integer id, String status) throws IOException {
+	public TrackerItemDto updateTrackerItemStatus(Integer id, String status) throws IOException {
 		TestCaseDto testCaseDto = new TestCaseDto(id, status);
 		String content = this.objectMapper.writeValueAsString(testCaseDto);
 		return this.put(content);

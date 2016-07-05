@@ -78,6 +78,8 @@ public class CodebeamerCoverageExecutor {
 		context.log("Upload coverage result to the test run.");
 		uploadResults(report, testCasesForCurrentResults, coverageTestSet, coverageTestRun, context);
 		context.log("Uploading coverage result is completed!");
+
+		context.getClient().updateTrackerItemStatus(coverageTestSet.getId(), "Completed");
 	}
 
 	private static void uploadResults(CoverageReport report, Map<String, Integer> testCasesForCurrentResults,
@@ -512,6 +514,10 @@ public class CodebeamerCoverageExecutor {
 			newTackerItem = context.getClient().postTrackerItem(testCaseDto);
 			context.logFormat("New test case <%d> created in tracker <%s> with parent <%s>", newTackerItem.getId(),
 					testCaseTrackerId, parentId);
+
+			// update status to accepted
+			context.getClient().updateTrackerItemStatus(newTackerItem.getId(), "Accepted");
+
 			parentId = newTackerItem.getId();
 
 			// update the test case map
