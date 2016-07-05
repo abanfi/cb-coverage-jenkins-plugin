@@ -28,6 +28,8 @@ import com.intland.jenkins.coverage.model.DirectoryCoverage;
 import com.intland.jenkins.dto.PluginConfiguration;
 import com.intland.jenkins.jacoco.JacocoResultParser;
 
+import jenkins.model.Jenkins;
+
 public class CodebeamerCoverageExecutor {
 
 	private static final String SUCCESS_STATUS = "Passed";
@@ -79,7 +81,6 @@ public class CodebeamerCoverageExecutor {
 		uploadResults(report, testCasesForCurrentResults, coverageTestSet, coverageTestRun, context);
 		context.log("Uploading coverage result is completed!");
 
-		context.getClient().updateTrackerItemStatus(coverageTestSet.getId(), "Completed");
 	}
 
 	private static void uploadResults(CoverageReport report, Map<String, Integer> testCasesForCurrentResults,
@@ -100,7 +101,7 @@ public class CodebeamerCoverageExecutor {
 			createTestCaseRun(testConfigurationId, coverageTestSet, coverageTestRun, directory, testCaseId, context);
 
 			stopWatch.stop();
-			context.logFormat("Test run succesfully created in %d ms", stopWatch.getNanoTime());
+			context.logFormat("Test run succesfully created in %d ms", stopWatch.getTime());
 
 			// create test for file items (classes in java)
 			for (CoverageBase fileCoverage : directory.getFiles()) {
@@ -116,7 +117,7 @@ public class CodebeamerCoverageExecutor {
 						context);
 
 				stopWatch.stop();
-				context.logFormat("Test run succesfully created in %d ms", stopWatch.getNanoTime());
+				context.logFormat("Test run succesfully created in %d ms", stopWatch.getTime());
 			}
 		}
 
@@ -132,7 +133,7 @@ public class CodebeamerCoverageExecutor {
 	 */
 	private static void appendJenkinsUrl(CoverageBase coverageData, DirectoryCoverage parentCoverage,
 			ExecutionContext context) {
-		String jenkinsBase = context.getConfiguration().getJenkinsUrlBase();
+		String jenkinsBase = Jenkins.getInstance().getRootUrl();
 		if (StringUtils.isNotBlank(jenkinsBase)) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("<br><br><a class=\"actionLink\" href=\"");
@@ -147,8 +148,8 @@ public class CodebeamerCoverageExecutor {
 			builder.append("/");
 			builder.append(parentCoverage.getName());
 			builder.append("/");
-			builder.append(coverageData.getName());
-			builder.append(".java.html\"> Report Details </a>");
+			builder.append(StringUtils.substringBeforeLast(coverageData.getName(), "$"));
+			builder.append(".java.html\">Source Coverage</a>");
 
 			coverageData.setMarkup(coverageData.getMarkup() + builder.toString());
 		}

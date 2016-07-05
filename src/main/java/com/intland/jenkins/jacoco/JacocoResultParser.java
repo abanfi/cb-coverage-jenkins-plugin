@@ -54,19 +54,14 @@ public class JacocoResultParser implements ICoverageCoverter {
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		} catch (SAXNotRecognizedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SAXNotSupportedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SAXException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 

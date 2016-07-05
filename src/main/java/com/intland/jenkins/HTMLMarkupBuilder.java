@@ -11,8 +11,11 @@ import com.intland.jenkins.jacoco.model.Report;
 
 public class HTMLMarkupBuilder {
 
-	private static String header = "<table border=\"1\" class=\"wikitable\"><tbody><tr><th>Element</th><th>Instructions</th>"
-			+ "<th>Branches</th><th>Complexity</th><th>Lines</th><th>Methods</th><th>Classes</th></tr>";
+	private static String header = "<table class=\"trackerItems relationsExpander displaytag treetable trackerItemTreeTable\" style=\"width: 300px;\">"
+			+ "<thead><tr><th style=\"min-width: 200px;\" class=\"textData\">Element</th><th class=\"textData\">Instructions</th>"
+			+ "<th class=\"textData\">Branches</th><th class=\"textData\">Complexity</th>"
+			+ "<th class=\"textData\">Lines</th><th class=\"textData\">Methods</th>"
+			+ "<th class=\"textData\">Classes</th></tr></thead><tbody>";
 
 	private static String INSTRUCTION = "INSTRUCTION";
 	private static String BRANCH = "BRANCH";
@@ -26,8 +29,17 @@ public class HTMLMarkupBuilder {
 	public static String genearteSummary(com.intland.jenkins.jacoco.model.Class base) {
 
 		StringBuilder builder = new StringBuilder();
-		builder.append(header);
 
+		// total part
+		builder.append("<h2><b>Overall coverage Summary</b></h2>");
+		builder.append(header);
+		builder.append("<tr>");
+		appendTotal(builder, "all methods", base.getCounter());
+		builder.append("</tr></tbody></table>");
+
+		// method part
+		builder.append("<br><h2><b>Coverage Breakdown by Method</b></h2>");
+		builder.append(header);
 		for (Method method : base.getMethod()) {
 			builder.append("<tr>");
 			builder.append("<td>");
@@ -37,10 +49,7 @@ public class HTMLMarkupBuilder {
 			appendColumns(builder, method.getCounter());
 			builder.append("</tr>");
 		}
-
-		builder.append("<tr>");
-		appendTotal(builder, base.getCounter());
-		builder.append("</tr></tbody></table>");
+		builder.append("</tbody></table>");
 
 		return builder.toString();
 	}
@@ -48,8 +57,17 @@ public class HTMLMarkupBuilder {
 	public static String genearteSummary(Package pack) {
 
 		StringBuilder builder = new StringBuilder();
-		builder.append(header);
 
+		// total part
+		builder.append("<h2><b>Overall coverage Summary</b></h2>");
+		builder.append(header);
+		builder.append("<tr>");
+		appendTotal(builder, "all classes", pack.getCounter());
+		builder.append("</tr></tbody></table>");
+
+		// classes part
+		builder.append("<br><h2><b>Coverage Breakdown by Class</b></h2>");
+		builder.append(header);
 		for (com.intland.jenkins.jacoco.model.Class clazz : pack.getClazz()) {
 
 			builder.append("<tr>");
@@ -60,10 +78,7 @@ public class HTMLMarkupBuilder {
 			appendColumns(builder, clazz.getCounter());
 			builder.append("</tr>");
 		}
-
-		builder.append("<tr>");
-		appendTotal(builder, pack.getCounter());
-		builder.append("</tr></tbody></table>");
+		builder.append("</tbody></table>");
 
 		return builder.toString();
 	}
@@ -71,8 +86,15 @@ public class HTMLMarkupBuilder {
 	public static String genearteSummary(Report report) {
 
 		StringBuilder builder = new StringBuilder();
-		builder.append(header);
 
+		builder.append("<h2><b>Overall Coverage Summary</b></h2>");
+		builder.append(header);
+		builder.append("<tr>");
+		appendTotal(builder, "all packages", report.getCounter());
+		builder.append("</tr></tbody></table>");
+
+		builder.append("<br><h2><b>Coverage Breakdown by Package</b></h2>");
+		builder.append(header);
 		for (Package pack : report.getPackage()) {
 
 			builder.append("<tr>");
@@ -83,17 +105,14 @@ public class HTMLMarkupBuilder {
 
 			appendColumns(builder, pack.getCounter());
 			builder.append("</tr>");
-
 		}
-		builder.append("<tr>");
-		appendTotal(builder, report.getCounter());
-		builder.append("</tr></tbody></table>");
+		builder.append("</tbody></table>");
 
 		return builder.toString();
 	}
 
-	private static void appendTotal(StringBuilder builder, List<Counter> counters) {
-		builder.append("<td>TOTAL:</td>");
+	private static void appendTotal(StringBuilder builder, String label, List<Counter> counters) {
+		builder.append("<td>" + label + ":</td>");
 
 		for (String column : COLUMNS) {
 			builder.append("<td>");
@@ -121,20 +140,20 @@ public class HTMLMarkupBuilder {
 			}
 		}
 
-		return "<div style=\"text-align:center;\">N/A</div>";
+		return "<div style=\"text-align:center; line-height: 20px;\">N/A</div>";
 	}
 
 	private static String generateDiagramMarkup(Integer missed, Integer covered, Integer coveredPercent) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("<div class=\"miniprogressbar\" style=\"width: 120px;\"> ");
+		builder.append("<div class=\"miniprogressbar\" style=\"width: 120px; height: 20px;\"> ");
 		builder.append("<div style=\"width:");
 		builder.append(coveredPercent);
-		builder.append("%;\" class=\"testingProgressBarPassed\"></div>");
+		builder.append("%; background-color:#00A85D;\"></div>");
 		builder.append("<div style=\"width:");
 		builder.append(100 - coveredPercent);
-		builder.append("%;\" class=\"testingProgressBarFailed\">");
+		builder.append("%; background-color:#CC3F44;\">");
 		builder.append(
-				"</div><div style=\"position: absolute; width: 100%; background: transparent; text-align: center;\">");
+				"</div><div style=\"position: absolute; font-weight: bold; width: 100%; background: transparent; text-align: center; color: white; line-height: 20px;\">");
 		builder.append(coveredPercent);
 		builder.append("%</div></div>");
 		return builder.toString();

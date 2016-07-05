@@ -23,7 +23,6 @@ public class PluginConfiguration {
 	private Integer successLineCoverage;
 	private Integer successMethodCoverage;
 	private Integer successClassCoverage;
-	private String jenkinsUrlBase;
 
 	public PluginConfiguration() {
 	}
@@ -170,11 +169,4 @@ public class PluginConfiguration {
 		this.successClassCoverage = successClassCoverage;
 	}
 
-	public String getJenkinsUrlBase() {
-		return this.jenkinsUrlBase;
-	}
-
-	public void setJenkinsUrlBase(String jenkinsUrlBase) {
-		this.jenkinsUrlBase = jenkinsUrlBase;
-	}
 }

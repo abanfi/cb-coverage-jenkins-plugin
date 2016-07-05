@@ -37,7 +37,6 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 	private Integer testConfigurationId;
 	private String includedPackages;
 	private String excludedPackages;
-	private String jenkinsUrlBase;
 
 	private Integer successInstructionCoverage;
 	private Integer successBranchCoverage;
@@ -64,7 +63,6 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 		this.successLineCoverage = 0;
 		this.successMethodCoverage = 0;
 		this.successClassCoverage = 0;
-		this.jenkinsUrlBase = StringUtils.EMPTY;
 	}
 
 	@Override
@@ -93,7 +91,6 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 		configuration.setSuccessInstructionCoverage(this.successInstructionCoverage);
 		configuration.setSuccessLineCoverage(this.successLineCoverage);
 		configuration.setSuccessMethodCoverage(this.successMethodCoverage);
-		configuration.setJenkinsUrlBase(this.jenkinsUrlBase);
 		context.setConfiguration(configuration);
 
 		// execute the coverage
@@ -368,15 +365,6 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 	@DataBoundSetter
 	public void setSuccessClassCoverage(Integer successClassCoverage) {
 		this.successClassCoverage = successClassCoverage;
-	}
-
-	public String getJenkinsUrlBase() {
-		return this.jenkinsUrlBase;
-	}
-
-	@DataBoundSetter
-	public void setJenkinsUrlBase(String jenkinsUrlBase) {
-		this.jenkinsUrlBase = jenkinsUrlBase;
 	}
 
 }
