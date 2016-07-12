@@ -1,10 +1,21 @@
-/*
- * Copyright (c) 2016 Intland Software (support@intland.com)
- */
+package com.intland.jenkins.coverage;
 
-package com.intland.jenkins.dto;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class PluginConfiguration {
+import com.intland.jenkins.api.CodebeamerApiClient;
+
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+
+public class ExecutionContext {
+
+	private final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	private final BuildListener listener;
+	private final AbstractBuild<?, ?> build;
+	private CodebeamerApiClient client;
 
 	private String uri;
 	private String reportPath;
@@ -24,13 +35,58 @@ public class PluginConfiguration {
 	private Integer successMethodCoverage;
 	private Integer successClassCoverage;
 
-	public PluginConfiguration() {
+	public ExecutionContext(BuildListener listener, AbstractBuild<?, ?> build) {
+		this.listener = listener;
+		this.build = build;
 	}
 
-	public PluginConfiguration(String uri, String username, String password) {
-		this.uri = uri;
-		this.username = username;
-		this.password = password;
+	public File getRootDirectory() {
+		try {
+			return new File(this.build.getWorkspace().toURI());
+		} catch (IOException | InterruptedException e) {
+			this.log("Workspace root path cannot be resolved!");
+		}
+		return null;
+	}
+
+	public void logFormat(String message, Object... parameters) {
+		this.log(String.format(message, parameters));
+	}
+
+	public void log(String message) {
+		String log = String.format("%s %s", this.DATE_FORMAT.format(new Date()), message);
+		this.listener.getLogger().println(log);
+	}
+
+	/**
+	 * Returns the API client - and initializes it if it is not created yet
+	 *
+	 * @return
+	 */
+	public CodebeamerApiClient getClient() {
+		if (this.client == null) {
+			this.client = new CodebeamerApiClient(this.uri, this.username, this.password);
+		}
+		return this.client;
+	}
+
+	/**
+	 * Returns a unique identifier for the current build (job name + # + build
+	 * number)
+	 *
+	 * @return
+	 */
+	public String getBuildIdentifier() {
+		return this.getJobName() + " #" + this.build.getNumber();
+	}
+
+	/**
+	 * Get the current job's name
+	 *
+	 * @return
+	 */
+	public String getJobName() {
+		return this.build.getProject().getName();
 	}
 
 	public String getUri() {

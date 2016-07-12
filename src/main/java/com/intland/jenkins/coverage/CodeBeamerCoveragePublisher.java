@@ -1,4 +1,4 @@
-package com.intland.jenkins;
+package com.intland.jenkins.coverage;
 
 import java.io.IOException;
 
@@ -10,7 +10,6 @@ import org.kohsuke.stapler.QueryParameter;
 import com.intland.jenkins.api.CodebeamerApiClient;
 import com.intland.jenkins.api.dto.TrackerDto;
 import com.intland.jenkins.api.dto.TrackerItemDto;
-import com.intland.jenkins.dto.PluginConfiguration;
 
 import hudson.Extension;
 import hudson.Launcher;
@@ -78,20 +77,21 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 		ExecutionContext context = new ExecutionContext(listener, build);
 
 		// construct configuration
-		PluginConfiguration configuration = new PluginConfiguration(this.uri, this.username, this.password);
-		configuration.setReportPath(this.reportPath);
-		configuration.setTestCaseParentId(this.testCaseParentId);
-		configuration.setTestCaseTrackerId(this.testCaseTrackerId);
-		configuration.setTestConfigurationId(this.testConfigurationId);
-		configuration.setTestRunTrackerId(this.testRunTrackerId);
-		configuration.setTestSetTrackerId(this.testSetTrackerId);
-		configuration.setSuccessBranchCoverage(this.successBranchCoverage);
-		configuration.setSuccessClassCoverage(this.successClassCoverage);
-		configuration.setSuccessComplexityCoverage(this.successComplexityCoverage);
-		configuration.setSuccessInstructionCoverage(this.successInstructionCoverage);
-		configuration.setSuccessLineCoverage(this.successLineCoverage);
-		configuration.setSuccessMethodCoverage(this.successMethodCoverage);
-		context.setConfiguration(configuration);
+		context.setUri(this.uri);
+		context.setUsername(this.username);
+		context.setPassword(this.password);
+		context.setReportPath(this.reportPath);
+		context.setTestCaseParentId(this.testCaseParentId);
+		context.setTestCaseTrackerId(this.testCaseTrackerId);
+		context.setTestConfigurationId(this.testConfigurationId);
+		context.setTestRunTrackerId(this.testRunTrackerId);
+		context.setTestSetTrackerId(this.testSetTrackerId);
+		context.setSuccessBranchCoverage(this.successBranchCoverage);
+		context.setSuccessClassCoverage(this.successClassCoverage);
+		context.setSuccessComplexityCoverage(this.successComplexityCoverage);
+		context.setSuccessInstructionCoverage(this.successInstructionCoverage);
+		context.setSuccessLineCoverage(this.successLineCoverage);
+		context.setSuccessMethodCoverage(this.successMethodCoverage);
 
 		// execute the coverage
 		CodebeamerCoverageExecutor.execute(context);
@@ -224,14 +224,14 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 
 		public FormValidation doCheckTestSetTrackerId(@QueryParameter Integer value, @QueryParameter String uri,
 				@QueryParameter String username, @QueryParameter String password) throws IOException {
-			return this.validateTrackerType(value, 108, new PluginConfiguration(uri, username, password), true);
+			return this.validateTrackerType(value, 108, uri, username, password, true);
 		}
 
 		public FormValidation doCheckTestCaseTrackerId(@QueryParameter Integer value, @QueryParameter String uri,
 				@QueryParameter String username, @QueryParameter String password,
 				@QueryParameter Integer testCaseParentId) throws IOException {
 			if (testCaseParentId == null) {
-				return this.validateTrackerType(value, 102, new PluginConfiguration(uri, username, password), true);
+				return this.validateTrackerType(value, 102, uri, username, password, true);
 			} else {
 				return FormValidation.ok();
 			}
@@ -239,31 +239,30 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 
 		public FormValidation doCheckTestCaseParentId(@QueryParameter Integer value, @QueryParameter String uri,
 				@QueryParameter String username, @QueryParameter String password) throws IOException {
-			return this.validateTrackerItemWithTracker(value, new PluginConfiguration(uri, username, password), 102,
-					false);
+			return this.validateTrackerItemWithTracker(value, uri, username, password, 102, false);
 		}
 
 		public FormValidation doCheckTestRunTrackerId(@QueryParameter Integer value, @QueryParameter String uri,
 				@QueryParameter String username, @QueryParameter String password) throws IOException {
-			return this.validateTrackerType(value, 9, new PluginConfiguration(uri, username, password), true);
+			return this.validateTrackerType(value, 9, uri, username, password, true);
 		}
 
 		public FormValidation doCheckTestConfigurationId(@QueryParameter Integer value, @QueryParameter String uri,
 				@QueryParameter String username, @QueryParameter String password) throws IOException {
-			return this.validateTrackerItemWithTracker(value, new PluginConfiguration(uri, username, password), 109,
-					true);
+			return this.validateTrackerItemWithTracker(value, uri, username, password, 109, true);
 		}
 
-		private FormValidation validateTrackerItemWithTracker(Integer value, PluginConfiguration pluginConfiguration,
-				int validTrackerTypeId, boolean required) {
+		private FormValidation validateTrackerItemWithTracker(Integer value, String uri, String userName,
+				String password, int validTrackerTypeId, boolean required) {
 			FormValidation result = FormValidation.ok();
 			if (value != null) {
 				try {
-					CodebeamerApiClient apiClient = new CodebeamerApiClient(pluginConfiguration, null);
+					CodebeamerApiClient apiClient = new CodebeamerApiClient(uri, userName, password);
 					TrackerItemDto trackerItem = apiClient.getTrackerItem(value);
 					if (trackerItem != null) {
 						Integer trackerId = trackerItem.getTracker().getId();
-						result = this.validateTrackerType(trackerId, validTrackerTypeId, pluginConfiguration, false);
+						result = this.validateTrackerType(trackerId, validTrackerTypeId, uri, userName, password,
+								false);
 					} else {
 						result = FormValidation.error("Tracker Item can not be found");
 					}
@@ -276,13 +275,13 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 			return result;
 		}
 
-		private FormValidation validateTrackerType(Integer value, int validTrackerTypeId,
-				PluginConfiguration pluginConfiguration, boolean required) {
+		private FormValidation validateTrackerType(Integer value, int validTrackerTypeId, String uri, String userName,
+				String password, boolean required) {
 			FormValidation result = FormValidation.ok();
 
 			if (value != null) {
 				try {
-					boolean valid = this.checkTrackerType(pluginConfiguration, value, validTrackerTypeId);
+					boolean valid = this.checkTrackerType(uri, userName, password, value, validTrackerTypeId);
 					if (valid) {
 						result = FormValidation.ok();
 					} else {
@@ -298,9 +297,9 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 			return result;
 		}
 
-		private boolean checkTrackerType(PluginConfiguration pluginConfiguration, Integer trackerId,
+		private boolean checkTrackerType(String uri, String userName, String password, Integer trackerId,
 				int validTrackerTypeId) throws IOException {
-			CodebeamerApiClient apiClient = new CodebeamerApiClient(pluginConfiguration, null);
+			CodebeamerApiClient apiClient = new CodebeamerApiClient(uri, userName, password);
 			TrackerDto trackerDto = apiClient.getTrackerType(trackerId);
 			boolean result = false;
 

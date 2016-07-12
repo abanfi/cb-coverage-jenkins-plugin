@@ -1,4 +1,4 @@
-package com.intland.jenkins;
+package com.intland.jenkins.coverage.markup;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +12,13 @@ import com.intland.jenkins.jacoco.model.Method;
 import com.intland.jenkins.jacoco.model.Package;
 import com.intland.jenkins.jacoco.model.Report;
 
+/**
+ * Deprecated - use HTMLMarkupBuilder
+ * 
+ * @author abanfi
+ *
+ */
+@Deprecated()
 public class MarkupBuilder {
 	private static final String COLUMN_START = "\n\n|";
 

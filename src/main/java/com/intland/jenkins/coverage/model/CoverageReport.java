@@ -3,8 +3,17 @@ package com.intland.jenkins.coverage.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Coverage result for a full source code
+ *
+ * @author abanfi
+ *
+ */
 public class CoverageReport extends CoverageBase {
 
+	/**
+	 * Coverage informations for packages, directories or namespaces
+	 */
 	private List<DirectoryCoverage> directories = new ArrayList<>();
 
 	public List<DirectoryCoverage> getDirectories() {

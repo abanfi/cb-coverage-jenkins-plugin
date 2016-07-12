@@ -1,4 +1,4 @@
-package com.intland.jenkins;
+package com.intland.jenkins.coverage;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,11 +21,9 @@ import com.intland.jenkins.api.dto.ReferenceDto;
 import com.intland.jenkins.api.dto.TestCaseDto;
 import com.intland.jenkins.api.dto.TestRunDto;
 import com.intland.jenkins.api.dto.TrackerItemDto;
-import com.intland.jenkins.coverage.ICoverageCoverter;
 import com.intland.jenkins.coverage.model.CoverageBase;
 import com.intland.jenkins.coverage.model.CoverageReport;
 import com.intland.jenkins.coverage.model.DirectoryCoverage;
-import com.intland.jenkins.dto.PluginConfiguration;
 import com.intland.jenkins.jacoco.JacocoResultParser;
 
 import jenkins.model.Jenkins;
@@ -61,9 +59,8 @@ public class CodebeamerCoverageExecutor {
 
 		context.log("Load existing test cases.");
 		CodebeamerApiClient client = context.getClient();
-		PluginConfiguration configuration = context.getConfiguration();
-		List<TrackerItemDto> testCases = client.getTrackerItemList(configuration.getTestCaseTrackerId());
-		context.logFormat("%d test cases found in tracker %d", testCases.size(), configuration.getTestCaseTrackerId());
+		List<TrackerItemDto> testCases = client.getTrackerItemList(context.getTestCaseTrackerId());
+		context.logFormat("%d test cases found in tracker %d", testCases.size(), context.getTestCaseTrackerId());
 
 		context.log("Collect test case ids.");
 		Map<String, Integer> testCasesForCurrentResults = collectTestCaseIds(report, testCases, context);
@@ -87,7 +84,7 @@ public class CodebeamerCoverageExecutor {
 			TrackerItemDto coverageTestSet, TrackerItemDto coverageTestRun, ExecutionContext context)
 			throws IOException {
 
-		Integer testConfigurationId = context.getConfiguration().getTestConfigurationId();
+		Integer testConfigurationId = context.getTestConfigurationId();
 
 		// iterate over the coverage report result
 		for (DirectoryCoverage directory : report.getDirectories()) {
@@ -142,7 +139,7 @@ public class CodebeamerCoverageExecutor {
 			builder.append(context.getJobName());
 			builder.append("/ws/");
 
-			String reportPath = StringUtils.replace(context.getConfiguration().getReportPath(), "\\", "/");
+			String reportPath = StringUtils.replace(context.getReportPath(), "\\", "/");
 			reportPath = StringUtils.substring(reportPath, 0, reportPath.lastIndexOf("/"));
 			builder.append(reportPath);
 			builder.append("/");
@@ -180,10 +177,10 @@ public class CodebeamerCoverageExecutor {
 			TrackerItemDto coverageTestRun, CoverageBase coverageBase, Integer testCaseId, ExecutionContext context)
 			throws IOException {
 
-		Integer testRunTrackerId = context.getConfiguration().getTestRunTrackerId();
+		Integer testRunTrackerId = context.getTestRunTrackerId();
 		TestRunDto testRunDto = new TestRunDto(coverageBase.getName(), coverageTestRun.getId(), testRunTrackerId,
 				Arrays.asList(new Integer[] { testCaseId }), testConfigurationId,
-				calculateStatus(coverageBase, context.getConfiguration()));
+				calculateStatus(coverageBase, context));
 		testRunDto.setDescription(coverageBase.getMarkup());
 		testRunDto.setDescFormat("Html");
 		testRunDto.setTestSet(coverageTestSet.getId());
@@ -202,24 +199,24 @@ public class CodebeamerCoverageExecutor {
 	 *
 	 * @param coverageBase
 	 *            the coverage object to evaluate
-	 * @param configuration
-	 *            the plugin's build configuration
+	 * @param context
+	 *            the plugin's context configuration
 	 * @return the coverage status as string (Passed or Failed)
 	 */
-	private static String calculateStatus(CoverageBase coverageBase, PluginConfiguration configuration) {
+	private static String calculateStatus(CoverageBase coverageBase, ExecutionContext context) {
 
 		boolean result = true;
-		result &= checkStatus(configuration.getSuccessBranchCoverage(), coverageBase.getBranchCovered(),
+		result &= checkStatus(context.getSuccessBranchCoverage(), coverageBase.getBranchCovered(),
 				coverageBase.getBranchMissed());
-		result &= checkStatus(configuration.getSuccessClassCoverage(), coverageBase.getClassCovered(),
+		result &= checkStatus(context.getSuccessClassCoverage(), coverageBase.getClassCovered(),
 				coverageBase.getClassMissed());
-		result &= checkStatus(configuration.getSuccessComplexityCoverage(), coverageBase.getComplexityCovered(),
+		result &= checkStatus(context.getSuccessComplexityCoverage(), coverageBase.getComplexityCovered(),
 				coverageBase.getComplexityMissed());
-		result &= checkStatus(configuration.getSuccessInstructionCoverage(), coverageBase.getInstructionCovered(),
+		result &= checkStatus(context.getSuccessInstructionCoverage(), coverageBase.getInstructionCovered(),
 				coverageBase.getInstructionMissed());
-		result &= checkStatus(configuration.getSuccessLineCoverage(), coverageBase.getLineCovered(),
+		result &= checkStatus(context.getSuccessLineCoverage(), coverageBase.getLineCovered(),
 				coverageBase.getLineMissed());
-		result &= checkStatus(configuration.getSuccessMethodCoverage(), coverageBase.getMethodCovered(),
+		result &= checkStatus(context.getSuccessMethodCoverage(), coverageBase.getMethodCovered(),
 				coverageBase.getMethodMissed());
 
 		return result ? SUCCESS_STATUS : FAILED_STATUS;
@@ -267,12 +264,11 @@ public class CodebeamerCoverageExecutor {
 	private static TrackerItemDto createTestRun(CoverageReport report, Map<String, Integer> testCasesForCurrentResults,
 			TrackerItemDto testSetDto, ExecutionContext context) throws IOException {
 
-		Integer testRunTrackerId = context.getConfiguration().getTestRunTrackerId();
-		Integer testConfigurationId = context.getConfiguration().getTestConfigurationId();
+		Integer testRunTrackerId = context.getTestRunTrackerId();
+		Integer testConfigurationId = context.getTestConfigurationId();
 
 		TestRunDto testRunDto = new TestRunDto(context.getBuildIdentifier(), null, testRunTrackerId,
-				testCasesForCurrentResults.values(), testConfigurationId,
-				calculateStatus(report, context.getConfiguration()));
+				testCasesForCurrentResults.values(), testConfigurationId, calculateStatus(report, context));
 
 		testRunDto.setTestSet(testSetDto.getId());
 		testRunDto.setDescription(report.getMarkup());
@@ -291,7 +287,7 @@ public class CodebeamerCoverageExecutor {
 	private static TrackerItemDto getOrCreateTestSet(ExecutionContext context) throws IOException {
 
 		String name = DEFAULT_TESTSET_NAME + "-" + context.getBuildIdentifier();
-		Integer testSetTrackerId = context.getConfiguration().getTestSetTrackerId();
+		Integer testSetTrackerId = context.getTestSetTrackerId();
 
 		// TODO Auto-generated method stub
 		return context.getClient().findOrCreateTrackerItem(testSetTrackerId, name, "--");
@@ -325,7 +321,7 @@ public class CodebeamerCoverageExecutor {
 
 		// resolve test case root node if it is exists
 		TrackerItemDto parent = null;
-		Integer parentId = context.getConfiguration().getTestCaseParentId();
+		Integer parentId = context.getTestCaseParentId();
 		if ((parentId != null) && testCasesMapById.containsKey(parentId)) {
 			parent = testCasesMapById.get(parentId);
 			context.logFormat("Parent Test Case can be resolved by id: <%d>", parentId);
@@ -487,7 +483,7 @@ public class CodebeamerCoverageExecutor {
 	private static TrackerItemDto createNewTestCase(String name, TrackerItemDto parentTestCase,
 			Map<String, TrackerItemDto> testCasesMapByName, ExecutionContext context) throws IOException {
 
-		Integer testCaseTrackerId = context.getConfiguration().getTestCaseTrackerId();
+		Integer testCaseTrackerId = context.getTestCaseTrackerId();
 
 		// split name parts - a name could be eg. a.b.c if the test case is
 		// represent a directory or package
@@ -535,12 +531,13 @@ public class CodebeamerCoverageExecutor {
 	 * @param context
 	 *            the context of the execution {@link ExecutionContext}
 	 * @return the common coverage report result {@link CoverageReport}
+	 * @throws IOException
 	 */
-	private static CoverageReport loadReport(ExecutionContext context) {
+	private static CoverageReport loadReport(ExecutionContext context) throws IOException {
 
 		// get report XML file
 		File rootDirectory = context.getRootDirectory();
-		String reportPath = context.getConfiguration().getReportPath();
+		String reportPath = context.getReportPath();
 		File reportFile = new File(rootDirectory, reportPath);
 
 		// validate report file - it should be exists
@@ -554,7 +551,7 @@ public class CodebeamerCoverageExecutor {
 		// TODO more converted can be specified
 		ICoverageCoverter converter = new JacocoResultParser();
 
-		return converter.collectCoverageReport(reportFile.getAbsolutePath());
+		return converter.collectCoverageReport(reportFile.getAbsolutePath(), context);
 	}
 
 }

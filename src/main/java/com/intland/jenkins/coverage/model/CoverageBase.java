@@ -1,26 +1,83 @@
 package com.intland.jenkins.coverage.model;
 
+/**
+ * Basic class for coverage result
+ *
+ * More information about the counters:
+ * http://www.eclemma.org/jacoco/trunk/doc/counters.html
+ *
+ * @author abanfi
+ */
 public class CoverageBase {
 
+	/**
+	 * Markup of the result - a diagram or a summary
+	 */
 	private String markup;
+
+	/**
+	 * Name of the compilation unit
+	 */
 	private String name;
 
+	/**
+	 * Source code lines missed
+	 */
 	private Integer lineMissed;
+
+	/**
+	 * Source code lines covered
+	 */
 	private Integer lineCovered;
 
+	/**
+	 * Missed byte code instructions
+	 */
 	private Integer instructionMissed;
+
+	/**
+	 * Covered byte code instructions
+	 */
 	private Integer instructionCovered;
 
+	/**
+	 * Cyclomatic complexity paths missed
+	 */
 	private Integer complexityMissed;
+
+	/**
+	 * Cyclomatic complexity paths covered
+	 */
 	private Integer complexityCovered;
 
+	/**
+	 * Methods missed
+	 */
 	private Integer methodMissed;
+
+	/**
+	 * Methods covered
+	 */
 	private Integer methodCovered;
 
+	/**
+	 * Branch (if or switch) covered
+	 */
 	private Integer branchMissed;
+
+	/**
+	 * Branch (if or switch) covered
+	 */
 	private Integer branchCovered;
 
+	/**
+	 * Classes covered
+	 */
 	private Integer classMissed;
+
+	/**
+	 * Classes covered
+	 */
 	private Integer classCovered;
 
 	public String getName() {

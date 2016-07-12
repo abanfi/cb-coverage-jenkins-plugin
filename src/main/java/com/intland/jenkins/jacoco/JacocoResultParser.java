@@ -1,25 +1,21 @@
 package com.intland.jenkins.jacoco;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.sax.SAXSource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
 
-import com.intland.jenkins.HTMLMarkupBuilder;
+import com.intland.jenkins.coverage.ExecutionContext;
 import com.intland.jenkins.coverage.ICoverageCoverter;
+import com.intland.jenkins.coverage.markup.HTMLMarkupBuilder;
 import com.intland.jenkins.coverage.model.CoverageBase;
 import com.intland.jenkins.coverage.model.CoverageReport;
 import com.intland.jenkins.coverage.model.DirectoryCoverage;
@@ -29,50 +25,52 @@ import com.intland.jenkins.jacoco.model.Group;
 import com.intland.jenkins.jacoco.model.Package;
 import com.intland.jenkins.jacoco.model.Report;
 
+/**
+ * Coverage parser implementation for jacoco reports
+ *
+ * @author abanfi
+ */
 public class JacocoResultParser implements ICoverageCoverter {
 
 	@Override
-	public CoverageReport collectCoverageReport(String reportFilePath) {
-
+	public CoverageReport collectCoverageReport(String reportFilePath, ExecutionContext context) throws IOException {
 		try {
-			JAXBContext jaxbContext = JAXBContext.newInstance(Report.class);
 
+			// create parser
+			JAXBContext jaxbContext = JAXBContext.newInstance(Report.class);
 			SAXParserFactory spf = SAXParserFactory.newInstance();
 			spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 			spf.setFeature("http://xml.org/sax/features/validation", false);
-
 			XMLReader xmlReader = spf.newSAXParser().getXMLReader();
 			InputSource inputSource = new InputSource(new FileReader(reportFilePath));
 			SAXSource source = new SAXSource(xmlReader, inputSource);
 
+			// unmarshall the XML
 			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-
 			Report report = (Report) jaxbUnmarshaller.unmarshal(source);
 
+			// convert result to the common form
 			return this.convertToCoverageReport(report);
 
-		} catch (JAXBException e) {
-			e.printStackTrace();
-		} catch (SAXNotRecognizedException e) {
-			e.printStackTrace();
-		} catch (SAXNotSupportedException e) {
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			context.logFormat("Exception occurred during parse the jacoco result: %s", e.getMessage());
+			throw new IOException(e);
 		}
-
-		return null;
 	}
 
+	/**
+	 * Converts a report and it's children to a coverage report object
+	 *
+	 * @param report
+	 *            the report to convert
+	 * @return the coverage report
+	 */
 	private CoverageReport convertToCoverageReport(Report report) {
 
 		CoverageReport coverageReport = new CoverageReport();
 		coverageReport.setName(report.getName());
 
+		// groups - greater compilation unit, eg. a project
 		List<Group> groups = report.getGroup();
 		if (groups != null) {
 			for (Group group : groups) {
@@ -82,6 +80,7 @@ public class JacocoResultParser implements ICoverageCoverter {
 			}
 		}
 
+		// simple packages
 		List<Package> packages = report.getPackage();
 		for (Package onePackage : packages) {
 			coverageReport.getDirectories().add(this.converPackage(onePackage));
@@ -93,6 +92,13 @@ public class JacocoResultParser implements ICoverageCoverter {
 		return coverageReport;
 	}
 
+	/**
+	 * Converts a package object and it's children to a directory base object
+	 *
+	 * @param onePackage
+	 *            the package to convert
+	 * @return the directory base object
+	 */
 	private DirectoryCoverage converPackage(Package onePackage) {
 
 		DirectoryCoverage directoryCoverage = new DirectoryCoverage();
@@ -108,6 +114,15 @@ public class JacocoResultParser implements ICoverageCoverter {
 		return directoryCoverage;
 	}
 
+	/**
+	 * Converts a class object to a coverage base object
+	 *
+	 * @param clazz
+	 *            the class to convert
+	 * @param packageName
+	 *            the parent package's name
+	 * @return a coverage base object
+	 */
 	private CoverageBase converClass(Class clazz, String packageName) {
 
 		CoverageBase base = new CoverageBase();

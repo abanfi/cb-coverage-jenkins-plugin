@@ -1,4 +1,4 @@
-package com.intland.jenkins;
+package com.intland.jenkins.coverage.markup;
 
 import java.util.List;
 
@@ -9,6 +9,12 @@ import com.intland.jenkins.jacoco.model.Method;
 import com.intland.jenkins.jacoco.model.Package;
 import com.intland.jenkins.jacoco.model.Report;
 
+/**
+ * HTML markup builder for a jacoco coverage result
+ * 
+ * @author abanfi
+ *
+ */
 public class HTMLMarkupBuilder {
 
 	private static String header = "<table class=\"trackerItems relationsExpander displaytag treetable trackerItemTreeTable\" style=\"width: 300px;\">"
@@ -26,7 +32,13 @@ public class HTMLMarkupBuilder {
 
 	private static String[] COLUMNS = new String[] { INSTRUCTION, BRANCH, COMPLEXITY, LINE, METHOD, CLASS };
 
-	public static String genearteSummary(com.intland.jenkins.jacoco.model.Class base) {
+	/**
+	 * Generates a HTML markup for the specified class
+	 *
+	 * @param clazz
+	 * @return the report markup
+	 */
+	public static String genearteSummary(com.intland.jenkins.jacoco.model.Class clazz) {
 
 		StringBuilder builder = new StringBuilder();
 
@@ -34,13 +46,13 @@ public class HTMLMarkupBuilder {
 		builder.append("<h2><b>Overall coverage Summary</b></h2>");
 		builder.append(header);
 		builder.append("<tr>");
-		appendTotal(builder, "all methods", base.getCounter());
+		appendTotal(builder, "all methods", clazz.getCounter());
 		builder.append("</tr></tbody></table>");
 
 		// method part
 		builder.append("<br><h2><b>Coverage Breakdown by Method</b></h2>");
 		builder.append(header);
-		for (Method method : base.getMethod()) {
+		for (Method method : clazz.getMethod()) {
 			builder.append("<tr>");
 			builder.append("<td>");
 			builder.append(method.getName());
@@ -54,6 +66,13 @@ public class HTMLMarkupBuilder {
 		return builder.toString();
 	}
 
+	/**
+	 * Generates a HTML markup for the specified package
+	 *
+	 * @param pack
+	 *            the package
+	 * @return the report markup
+	 */
 	public static String genearteSummary(Package pack) {
 
 		StringBuilder builder = new StringBuilder();
@@ -83,6 +102,13 @@ public class HTMLMarkupBuilder {
 		return builder.toString();
 	}
 
+	/**
+	 * Generates a HTML markup for the specified report
+	 *
+	 * @param pack
+	 *            the report
+	 * @return the report markup
+	 */
 	public static String genearteSummary(Report report) {
 
 		StringBuilder builder = new StringBuilder();
@@ -111,28 +137,50 @@ public class HTMLMarkupBuilder {
 		return builder.toString();
 	}
 
+	/**
+	 * Appends the total columns to the result
+	 *
+	 * @param builder
+	 *            the string builder that hold the result
+	 * @param label
+	 *            the row label
+	 * @param counters
+	 *            the coverage counters
+	 */
 	private static void appendTotal(StringBuilder builder, String label, List<Counter> counters) {
 		builder.append("<td>" + label + ":</td>");
-
-		for (String column : COLUMNS) {
-			builder.append("<td>");
-			builder.append(calculate(column, counters));
-			builder.append("</td>");
-		}
+		appendColumns(builder, counters);
 	}
 
+	/**
+	 * Append counter values to the row
+	 *
+	 * @param builder
+	 *            the string builder that hold the result
+	 * @param counter
+	 *            the coverage counters
+	 */
 	private static void appendColumns(StringBuilder builder, List<Counter> counter) {
 		for (String column : COLUMNS) {
 			builder.append("<td>");
-			builder.append(calculate(column, counter));
+			builder.append(convertToMarkup(column, counter));
 			builder.append("</td>");
 		}
-
 	}
 
-	private static String calculate(String type, List<Counter> counters) {
+	/**
+	 * Converts a type of coverage into HTML markup
+	 *
+	 * @param type
+	 *            the type of coverage
+	 * @param counters
+	 *            the counter list
+	 * @return the generated markup
+	 */
+	private static String convertToMarkup(String type, List<Counter> counters) {
 
 		for (Counter counter : counters) {
+			// only one counter exist with the required type
 			if (counter.getType().equals(type)) {
 				Integer all = counter.getMissed() + counter.getCovered();
 				Double percent = (counter.getCovered() / (double) all) * 100d;
@@ -143,6 +191,17 @@ public class HTMLMarkupBuilder {
 		return "<div style=\"text-align:center; line-height: 20px;\">N/A</div>";
 	}
 
+	/**
+	 * Generates one cell's HTML markup
+	 *
+	 * @param missed
+	 *            missed number
+	 * @param covered
+	 *            covered number
+	 * @param coveredPercent
+	 *            coverage percentage
+	 * @return cell markup
+	 */
 	private static String generateDiagramMarkup(Integer missed, Integer covered, Integer coveredPercent) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("<div class=\"miniprogressbar\" style=\"width: 120px; height: 20px;\"> ");
@@ -152,8 +211,8 @@ public class HTMLMarkupBuilder {
 		builder.append("<div style=\"width:");
 		builder.append(100 - coveredPercent);
 		builder.append("%; background-color:#CC3F44;\">");
-		builder.append(
-				"</div><div style=\"position: absolute; font-weight: bold; width: 100%; background: transparent; text-align: center; color: white; line-height: 20px;\">");
+		builder.append("</div><div style=\"position: absolute; font-weight: bold; width: 100%; ");
+		builder.append("background: transparent; text-align: center; color: white; line-height: 20px;\">");
 		builder.append(coveredPercent);
 		builder.append("%</div></div>");
 		return builder.toString();
