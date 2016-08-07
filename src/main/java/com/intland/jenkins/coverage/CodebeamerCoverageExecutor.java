@@ -10,8 +10,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.StopWatch;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.StopWatch;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;

@@ -9,7 +9,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.sax.SAXSource;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 

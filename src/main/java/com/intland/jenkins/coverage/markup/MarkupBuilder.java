@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.intland.jenkins.jacoco.model.Counter;
 import com.intland.jenkins.jacoco.model.Method;
@@ -14,7 +14,7 @@ import com.intland.jenkins.jacoco.model.Report;
 
 /**
  * Deprecated - use HTMLMarkupBuilder
- * 
+ *
  * @author abanfi
  *
  */

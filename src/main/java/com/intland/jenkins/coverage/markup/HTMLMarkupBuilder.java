@@ -2,7 +2,7 @@ package com.intland.jenkins.coverage.markup;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.intland.jenkins.jacoco.model.Counter;
 import com.intland.jenkins.jacoco.model.Method;
@@ -11,7 +11,7 @@ import com.intland.jenkins.jacoco.model.Report;
 
 /**
  * HTML markup builder for a jacoco coverage result
- * 
+ *
  * @author abanfi
  *
  */

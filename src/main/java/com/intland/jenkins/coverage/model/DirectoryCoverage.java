@@ -3,7 +3,7 @@ package com.intland.jenkins.coverage.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Coverage informations for a directory, namespace or package
