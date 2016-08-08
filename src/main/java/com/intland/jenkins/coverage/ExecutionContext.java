@@ -34,6 +34,7 @@ public class ExecutionContext {
 	private Integer successLineCoverage;
 	private Integer successMethodCoverage;
 	private Integer successClassCoverage;
+	private boolean testCaseTypeSupported;
 
 	public ExecutionContext(BuildListener listener, AbstractBuild<?, ?> build) {
 		this.listener = listener;
@@ -223,6 +224,14 @@ public class ExecutionContext {
 
 	public void setSuccessClassCoverage(Integer successClassCoverage) {
 		this.successClassCoverage = successClassCoverage;
+	}
+
+	public boolean isTestCaseTypeSupported() {
+		return this.testCaseTypeSupported;
+	}
+
+	public void setTestCaseTypeSupported(boolean testCaseSupported) {
+		this.testCaseTypeSupported = testCaseSupported;
 	}
 
 }

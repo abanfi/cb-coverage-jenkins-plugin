@@ -30,6 +30,7 @@ import jenkins.model.Jenkins;
 
 public class CodebeamerCoverageExecutor {
 
+	private static final String TEST_CASE_TYPE_NAME = "Automated";
 	private static final String SUCCESS_STATUS = "Passed";
 	private static final String FAILED_STATUS = "Failed";
 	private static final String DEFAULT_TESTSET_NAME = "Jenkins-Coverage";
@@ -57,9 +58,16 @@ public class CodebeamerCoverageExecutor {
 		}
 		context.logFormat("%s Parsing finished in %d ms!", report.toSummary(), stopWatch.getTime());
 
-		context.log("Load existing test cases.");
 		CodebeamerApiClient client = context.getClient();
-		List<TrackerItemDto> testCases = client.getTrackerItemList(context.getTestCaseTrackerId());
+
+		context.log("Checking supported test case types...");
+		boolean isTestCaseTypeSupported = client.isTestCaseTypeSupported(context.getTestCaseTrackerId(),
+				TEST_CASE_TYPE_NAME);
+		context.setTestCaseTypeSupported(isTestCaseTypeSupported);
+		context.log(String.format("Test Case type: %s, supported: %s", TEST_CASE_TYPE_NAME, isTestCaseTypeSupported));
+
+		context.log("Load existing test cases.");
+		List<TrackerItemDto> testCases = client.getTrackerItemList(context);
 		context.logFormat("%d test cases found in tracker %d", testCases.size(), context.getTestCaseTrackerId());
 
 		context.log("Collect test case ids.");
@@ -266,6 +274,10 @@ public class CodebeamerCoverageExecutor {
 
 		Integer testRunTrackerId = context.getTestRunTrackerId();
 		Integer testConfigurationId = context.getTestConfigurationId();
+
+		context.logFormat(
+				"Creating Test run in test run tracker <%s>, with test configuration <%s> and added <%s> test cases.",
+				testRunTrackerId, testConfigurationId, testCasesForCurrentResults.size());
 
 		TestRunDto testRunDto = new TestRunDto(context.getBuildIdentifier(), null, testRunTrackerId,
 				testCasesForCurrentResults.values(), testConfigurationId, calculateStatus(report, context));
@@ -505,7 +517,9 @@ public class CodebeamerCoverageExecutor {
 			// TODO create normal test case DTO
 			TestRunDto testCaseDto = new TestRunDto(part, "/tracker/" + testCaseTrackerId, parentId);
 			testCaseDto.setDescription("--");
-			testCaseDto.setType("Automated");
+			if (context.isTestCaseTypeSupported()) {
+				testCaseDto.setType(TEST_CASE_TYPE_NAME);
+			}
 
 			// create the tracker item and log the result
 			newTackerItem = context.getClient().postTrackerItem(testCaseDto);
