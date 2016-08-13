@@ -5,12 +5,11 @@
 // Generated on: 2016.07.30 at 04:15:50 PM CEST
 //
 
-package com.intland.jenkins.gcovr;
+package com.intland.jenkins.gcovr.model;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
@@ -26,16 +25,12 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element ref="{}sources" minOccurs="0"/>
- *         &lt;element ref="{}packages"/>
- *       &lt;/sequence>
+ *     &lt;extension base="{}classes">
+ *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
  *       &lt;attribute name="line-rate" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
  *       &lt;attribute name="branch-rate" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
- *       &lt;attribute name="version" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
- *       &lt;attribute name="timestamp" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
- *     &lt;/restriction>
+ *       &lt;attribute name="complexity" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
+ *     &lt;/extension>
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
@@ -43,66 +38,42 @@ import javax.xml.bind.annotation.XmlType;
  *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = { "sources", "packages" })
-@XmlRootElement(name = "coverage")
-public class Coverage {
+@XmlType(name = "")
+@XmlRootElement(name = "package")
+public class Package extends Classes {
 
-	protected Sources sources;
-	@XmlElement(required = true)
-	protected Packages packages;
+	@XmlAttribute(name = "name", required = true)
+	@XmlSchemaType(name = "anySimpleType")
+	protected String name;
 	@XmlAttribute(name = "line-rate", required = true)
 	@XmlSchemaType(name = "anySimpleType")
 	protected String lineRate;
 	@XmlAttribute(name = "branch-rate", required = true)
 	@XmlSchemaType(name = "anySimpleType")
 	protected String branchRate;
-	@XmlAttribute(name = "version", required = true)
+	@XmlAttribute(name = "complexity", required = true)
 	@XmlSchemaType(name = "anySimpleType")
-	protected String version;
-	@XmlAttribute(name = "timestamp", required = true)
-	@XmlSchemaType(name = "anySimpleType")
-	protected String timestamp;
+	protected String complexity;
 
 	/**
-	 * Gets the value of the sources property.
+	 * Gets the value of the name property.
 	 * 
-	 * @return possible object is {@link Sources }
+	 * @return possible object is {@link String }
 	 * 
 	 */
-	public Sources getSources() {
-		return this.sources;
+	public String getName() {
+		return this.name;
 	}
 
 	/**
-	 * Sets the value of the sources property.
+	 * Sets the value of the name property.
 	 * 
 	 * @param value
-	 *            allowed object is {@link Sources }
+	 *            allowed object is {@link String }
 	 * 
 	 */
-	public void setSources(Sources value) {
-		this.sources = value;
-	}
-
-	/**
-	 * Gets the value of the packages property.
-	 * 
-	 * @return possible object is {@link Packages }
-	 * 
-	 */
-	public Packages getPackages() {
-		return this.packages;
-	}
-
-	/**
-	 * Sets the value of the packages property.
-	 * 
-	 * @param value
-	 *            allowed object is {@link Packages }
-	 * 
-	 */
-	public void setPackages(Packages value) {
-		this.packages = value;
+	public void setName(String value) {
+		this.name = value;
 	}
 
 	/**
@@ -148,45 +119,24 @@ public class Coverage {
 	}
 
 	/**
-	 * Gets the value of the version property.
+	 * Gets the value of the complexity property.
 	 * 
 	 * @return possible object is {@link String }
 	 * 
 	 */
-	public String getVersion() {
-		return this.version;
+	public String getComplexity() {
+		return this.complexity;
 	}
 
 	/**
-	 * Sets the value of the version property.
+	 * Sets the value of the complexity property.
 	 * 
 	 * @param value
 	 *            allowed object is {@link String }
 	 * 
 	 */
-	public void setVersion(String value) {
-		this.version = value;
-	}
-
-	/**
-	 * Gets the value of the timestamp property.
-	 * 
-	 * @return possible object is {@link String }
-	 * 
-	 */
-	public String getTimestamp() {
-		return this.timestamp;
-	}
-
-	/**
-	 * Sets the value of the timestamp property.
-	 * 
-	 * @param value
-	 *            allowed object is {@link String }
-	 * 
-	 */
-	public void setTimestamp(String value) {
-		this.timestamp = value;
+	public void setComplexity(String value) {
+		this.complexity = value;
 	}
 
 }

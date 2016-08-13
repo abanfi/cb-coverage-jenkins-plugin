@@ -5,7 +5,7 @@
 // Generated on: 2016.07.30 at 04:15:50 PM CEST
 //
 
-package com.intland.jenkins.gcovr;
+package com.intland.jenkins.gcovr.model;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -28,12 +28,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element ref="{}lines"/>
+ *         &lt;element ref="{}sources" minOccurs="0"/>
+ *         &lt;element ref="{}packages"/>
  *       &lt;/sequence>
- *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
- *       &lt;attribute name="signature" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
  *       &lt;attribute name="line-rate" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
  *       &lt;attribute name="branch-rate" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
+ *       &lt;attribute name="version" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
+ *       &lt;attribute name="timestamp" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -42,86 +43,66 @@ import javax.xml.bind.annotation.XmlType;
  *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = { "lines" })
-@XmlRootElement(name = "method")
-public class Method {
+@XmlType(name = "", propOrder = { "sources", "packages" })
+@XmlRootElement(name = "coverage")
+public class Coverage {
 
+	protected Sources sources;
 	@XmlElement(required = true)
-	protected Lines lines;
-	@XmlAttribute(name = "name", required = true)
-	@XmlSchemaType(name = "anySimpleType")
-	protected String name;
-	@XmlAttribute(name = "signature", required = true)
-	@XmlSchemaType(name = "anySimpleType")
-	protected String signature;
+	protected Packages packages;
 	@XmlAttribute(name = "line-rate", required = true)
 	@XmlSchemaType(name = "anySimpleType")
 	protected String lineRate;
 	@XmlAttribute(name = "branch-rate", required = true)
 	@XmlSchemaType(name = "anySimpleType")
 	protected String branchRate;
+	@XmlAttribute(name = "version", required = true)
+	@XmlSchemaType(name = "anySimpleType")
+	protected String version;
+	@XmlAttribute(name = "timestamp", required = true)
+	@XmlSchemaType(name = "anySimpleType")
+	protected String timestamp;
 
 	/**
-	 * Gets the value of the lines property.
+	 * Gets the value of the sources property.
 	 * 
-	 * @return possible object is {@link Lines }
+	 * @return possible object is {@link Sources }
 	 * 
 	 */
-	public Lines getLines() {
-		return this.lines;
+	public Sources getSources() {
+		return this.sources;
 	}
 
 	/**
-	 * Sets the value of the lines property.
+	 * Sets the value of the sources property.
 	 * 
 	 * @param value
-	 *            allowed object is {@link Lines }
+	 *            allowed object is {@link Sources }
 	 * 
 	 */
-	public void setLines(Lines value) {
-		this.lines = value;
+	public void setSources(Sources value) {
+		this.sources = value;
 	}
 
 	/**
-	 * Gets the value of the name property.
+	 * Gets the value of the packages property.
 	 * 
-	 * @return possible object is {@link String }
+	 * @return possible object is {@link Packages }
 	 * 
 	 */
-	public String getName() {
-		return this.name;
+	public Packages getPackages() {
+		return this.packages;
 	}
 
 	/**
-	 * Sets the value of the name property.
+	 * Sets the value of the packages property.
 	 * 
 	 * @param value
-	 *            allowed object is {@link String }
+	 *            allowed object is {@link Packages }
 	 * 
 	 */
-	public void setName(String value) {
-		this.name = value;
-	}
-
-	/**
-	 * Gets the value of the signature property.
-	 * 
-	 * @return possible object is {@link String }
-	 * 
-	 */
-	public String getSignature() {
-		return this.signature;
-	}
-
-	/**
-	 * Sets the value of the signature property.
-	 * 
-	 * @param value
-	 *            allowed object is {@link String }
-	 * 
-	 */
-	public void setSignature(String value) {
-		this.signature = value;
+	public void setPackages(Packages value) {
+		this.packages = value;
 	}
 
 	/**
@@ -164,6 +145,48 @@ public class Method {
 	 */
 	public void setBranchRate(String value) {
 		this.branchRate = value;
+	}
+
+	/**
+	 * Gets the value of the version property.
+	 * 
+	 * @return possible object is {@link String }
+	 * 
+	 */
+	public String getVersion() {
+		return this.version;
+	}
+
+	/**
+	 * Sets the value of the version property.
+	 * 
+	 * @param value
+	 *            allowed object is {@link String }
+	 * 
+	 */
+	public void setVersion(String value) {
+		this.version = value;
+	}
+
+	/**
+	 * Gets the value of the timestamp property.
+	 * 
+	 * @return possible object is {@link String }
+	 * 
+	 */
+	public String getTimestamp() {
+		return this.timestamp;
+	}
+
+	/**
+	 * Sets the value of the timestamp property.
+	 * 
+	 * @param value
+	 *            allowed object is {@link String }
+	 * 
+	 */
+	public void setTimestamp(String value) {
+		this.timestamp = value;
 	}
 
 }

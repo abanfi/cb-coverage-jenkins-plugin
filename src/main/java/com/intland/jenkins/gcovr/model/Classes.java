@@ -5,7 +5,7 @@
 // Generated on: 2016.07.30 at 04:15:50 PM CEST
 //
 
-package com.intland.jenkins.gcovr;
+package com.intland.jenkins.gcovr.model;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

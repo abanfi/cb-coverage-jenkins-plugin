@@ -26,7 +26,8 @@ import hudson.util.FormValidation;
 public class CodeBeamerCoveragePublisher extends Notifier {
 
 	private String uri;
-	private String reportPath;
+	private String jacocoReportPath;
+	private String coberturaReportPath;
 	private String username;
 	private String password;
 	private Integer testSetTrackerId;
@@ -80,7 +81,8 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 		context.setUri(this.uri);
 		context.setUsername(this.username);
 		context.setPassword(this.password);
-		context.setReportPath(this.reportPath);
+		context.setJacocReportPath(this.jacocoReportPath);
+		context.setCoberturaReportPath(this.coberturaReportPath);
 		context.setTestCaseParentId(this.testCaseParentId);
 		context.setTestCaseTrackerId(this.testCaseTrackerId);
 		context.setTestConfigurationId(this.testConfigurationId);
@@ -188,15 +190,6 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 	@DataBoundSetter
 	public void setExcludedPackages(String excludedPackages) {
 		this.excludedPackages = excludedPackages;
-	}
-
-	public String getReportPath() {
-		return this.reportPath;
-	}
-
-	@DataBoundSetter
-	public void setReportPath(String reportPath) {
-		this.reportPath = reportPath;
 	}
 
 	@Extension
@@ -364,6 +357,24 @@ public class CodeBeamerCoveragePublisher extends Notifier {
 	@DataBoundSetter
 	public void setSuccessClassCoverage(Integer successClassCoverage) {
 		this.successClassCoverage = successClassCoverage;
+	}
+
+	public String getJacocoReportPath() {
+		return this.jacocoReportPath;
+	}
+
+	@DataBoundSetter
+	public void setJacocoReportPath(String jacocReportPath) {
+		this.jacocoReportPath = jacocReportPath;
+	}
+
+	public String getCoberturaReportPath() {
+		return this.coberturaReportPath;
+	}
+
+	@DataBoundSetter
+	public void setCoberturaReportPath(String coberturaReportPath) {
+		this.coberturaReportPath = coberturaReportPath;
 	}
 
 }

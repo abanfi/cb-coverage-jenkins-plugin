@@ -18,7 +18,8 @@ public class ExecutionContext {
 	private CodebeamerApiClient client;
 
 	private String uri;
-	private String reportPath;
+	private String jacocReportPath;
+	private String coberturaReportPath;
 	private String username;
 	private String password;
 	private Integer testSetTrackerId;
@@ -170,14 +171,6 @@ public class ExecutionContext {
 		this.excludedPackages = excludedPackages;
 	}
 
-	public String getReportPath() {
-		return this.reportPath;
-	}
-
-	public void setReportPath(String reportPath) {
-		this.reportPath = reportPath;
-	}
-
 	public Integer getSuccessInstructionCoverage() {
 		return this.successInstructionCoverage;
 	}
@@ -232,6 +225,22 @@ public class ExecutionContext {
 
 	public void setTestCaseTypeSupported(boolean testCaseSupported) {
 		this.testCaseTypeSupported = testCaseSupported;
+	}
+
+	public String getCoberturaReportPath() {
+		return this.coberturaReportPath;
+	}
+
+	public void setCoberturaReportPath(String coberturaReportPath) {
+		this.coberturaReportPath = coberturaReportPath;
+	}
+
+	public String getJacocReportPath() {
+		return this.jacocReportPath;
+	}
+
+	public void setJacocReportPath(String jacocReportPath) {
+		this.jacocReportPath = jacocReportPath;
 	}
 
 }

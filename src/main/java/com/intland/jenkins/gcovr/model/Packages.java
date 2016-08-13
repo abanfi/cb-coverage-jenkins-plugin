@@ -5,13 +5,14 @@
 // Generated on: 2016.07.30 at 04:15:50 PM CEST
 //
 
-package com.intland.jenkins.gcovr;
+package com.intland.jenkins.gcovr.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -28,7 +29,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element ref="{}source" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element ref="{}package" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -38,39 +39,40 @@ import javax.xml.bind.annotation.XmlType;
  *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = { "source" })
-@XmlRootElement(name = "sources")
-public class Sources {
+@XmlType(name = "", propOrder = { "_package" })
+@XmlRootElement(name = "packages")
+public class Packages {
 
-	protected List<String> source;
+	@XmlElement(name = "package")
+	protected List<Package> _package;
 
 	/**
-	 * Gets the value of the source property.
+	 * Gets the value of the package property.
 	 * 
 	 * <p>
 	 * This accessor method returns a reference to the live list, not a
 	 * snapshot. Therefore any modification you make to the returned list will
 	 * be present inside the JAXB object. This is why there is not a
-	 * <CODE>set</CODE> method for the source property.
+	 * <CODE>set</CODE> method for the package property.
 	 * 
 	 * <p>
 	 * For example, to add a new item, do as follows:
 	 * 
 	 * <pre>
-	 * getSource().add(newItem);
+	 * getPackage().add(newItem);
 	 * </pre>
 	 * 
 	 * 
 	 * <p>
-	 * Objects of the following type(s) are allowed in the list {@link String }
+	 * Objects of the following type(s) are allowed in the list {@link Package }
 	 * 
 	 * 
 	 */
-	public List<String> getSource() {
-		if (this.source == null) {
-			this.source = new ArrayList<String>();
+	public List<Package> getPackage() {
+		if (this._package == null) {
+			this._package = new ArrayList<Package>();
 		}
-		return this.source;
+		return this._package;
 	}
 
 }

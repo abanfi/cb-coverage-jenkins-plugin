@@ -23,7 +23,9 @@ import com.intland.jenkins.api.dto.TestRunDto;
 import com.intland.jenkins.api.dto.TrackerItemDto;
 import com.intland.jenkins.coverage.model.CoverageBase;
 import com.intland.jenkins.coverage.model.CoverageReport;
+import com.intland.jenkins.coverage.model.CoverageReport.CoverageType;
 import com.intland.jenkins.coverage.model.DirectoryCoverage;
+import com.intland.jenkins.gcovr.GcovResultParser;
 import com.intland.jenkins.jacoco.JacocoResultParser;
 
 import jenkins.model.Jenkins;
@@ -49,43 +51,47 @@ public class CodebeamerCoverageExecutor {
 		context.log("Start to process coverage report.");
 
 		// get and check the report
-		CoverageReport report = loadReport(context);
+		List<CoverageReport> reports = loadReport(context);
 		stopWatch.stop();
 
-		if (report == null) {
+		if ((reports == null) || reports.isEmpty()) {
 			context.log("Report cannot be parsed or cannot be found! Execution stopping.");
 			return;
 		}
-		context.logFormat("%s Parsing finished in %d ms!", report.toSummary(), stopWatch.getTime());
 
-		CodebeamerApiClient client = context.getClient();
+		for (CoverageReport report : reports) {
+			context.logFormat("%s Parsing finished in %d ms!", report.toSummary(), stopWatch.getTime());
 
-		context.log("Checking supported test case types...");
-		boolean isTestCaseTypeSupported = client.isTestCaseTypeSupported(context.getTestCaseTrackerId(),
-				TEST_CASE_TYPE_NAME);
-		context.setTestCaseTypeSupported(isTestCaseTypeSupported);
-		context.log(String.format("Test Case type: %s, supported: %s", TEST_CASE_TYPE_NAME, isTestCaseTypeSupported));
+			CodebeamerApiClient client = context.getClient();
 
-		context.log("Load existing test cases.");
-		List<TrackerItemDto> testCases = client.getTrackerItemList(context);
-		context.logFormat("%d test cases found in tracker %d", testCases.size(), context.getTestCaseTrackerId());
+			context.log("Checking supported test case types...");
+			boolean isTestCaseTypeSupported = client.isTestCaseTypeSupported(context.getTestCaseTrackerId(),
+					TEST_CASE_TYPE_NAME);
+			context.setTestCaseTypeSupported(isTestCaseTypeSupported);
+			context.log(
+					String.format("Test Case type: %s, supported: %s", TEST_CASE_TYPE_NAME, isTestCaseTypeSupported));
 
-		context.log("Collect test case ids.");
-		Map<String, Integer> testCasesForCurrentResults = collectTestCaseIds(report, testCases, context);
-		context.logFormat("%d Test Case items are collected.", testCasesForCurrentResults.size());
+			context.log("Load existing test cases.");
+			List<TrackerItemDto> testCases = client.getTrackerItemList(context);
+			context.logFormat("%d test cases found in tracker %d", testCases.size(), context.getTestCaseTrackerId());
 
-		context.log("Create or get default test set for coverage.");
-		TrackerItemDto coverageTestSet = getOrCreateTestSet(context);
-		context.logFormat("Coverage test set found: <%d>.", coverageTestSet.getId());
+			context.log("Collect test case ids.");
+			Map<String, Integer> testCasesForCurrentResults = collectTestCaseIds(report, testCases, context);
+			context.logFormat("%d Test Case items are collected.", testCasesForCurrentResults.size());
 
-		context.log("Create new Test Run.");
-		TrackerItemDto coverageTestRun = createTestRun(report, testCasesForCurrentResults, coverageTestSet, context);
-		context.logFormat(" Test Run created: <%s>.", coverageTestRun.getId());
+			context.log("Create or get default test set for coverage.");
+			TrackerItemDto coverageTestSet = getOrCreateTestSet(context);
+			context.logFormat("Coverage test set found: <%d>.", coverageTestSet.getId());
 
-		context.log("Upload coverage result to the test run.");
-		uploadResults(report, testCasesForCurrentResults, coverageTestSet, coverageTestRun, context);
-		context.log("Uploading coverage result is completed!");
+			context.log("Create new Test Run.");
+			TrackerItemDto coverageTestRun = createTestRun(report, testCasesForCurrentResults, coverageTestSet,
+					context);
+			context.logFormat(" Test Run created: <%s>.", coverageTestRun.getId());
 
+			context.log("Upload coverage result to the test run.");
+			uploadResults(report, testCasesForCurrentResults, coverageTestSet, coverageTestRun, context);
+			context.log("Uploading coverage result is completed!");
+		}
 	}
 
 	private static void uploadResults(CoverageReport report, Map<String, Integer> testCasesForCurrentResults,
@@ -117,7 +123,9 @@ public class CodebeamerCoverageExecutor {
 				testCaseId = testCasesForCurrentResults.get(fileCoverage.getName());
 
 				// FIXME just for demo, it is clearly wrong in here
-				appendJenkinsUrl(fileCoverage, directory, context);
+				if (CoverageType.JACOCO.equals(report.getType())) {
+					appendJenkinsUrl(fileCoverage, directory, context);
+				}
 				createTestCaseRun(testConfigurationId, coverageTestSet, coverageTestRun, fileCoverage, testCaseId,
 						context);
 
@@ -147,7 +155,7 @@ public class CodebeamerCoverageExecutor {
 			builder.append(context.getJobName());
 			builder.append("/ws/");
 
-			String reportPath = StringUtils.replace(context.getReportPath(), "\\", "/");
+			String reportPath = StringUtils.replace(context.getJacocReportPath(), "\\", "/");
 			reportPath = StringUtils.substring(reportPath, 0, reportPath.lastIndexOf("/"));
 			builder.append(reportPath);
 			builder.append("/");
@@ -548,25 +556,38 @@ public class CodebeamerCoverageExecutor {
 	 * @return the common coverage report result {@link CoverageReport}
 	 * @throws IOException
 	 */
-	private static CoverageReport loadReport(ExecutionContext context) throws IOException {
+	private static List<CoverageReport> loadReport(ExecutionContext context) throws IOException {
 
-		// get report XML file
-		File rootDirectory = context.getRootDirectory();
-		String reportPath = context.getReportPath();
-		File reportFile = new File(rootDirectory, reportPath);
+		List<CoverageReport> reports = new ArrayList<>();
 
-		// validate report file - it should be exists
-		if (!reportFile.exists()) {
-			context.log(String.format("Report file cannot be found at path <%s>", reportFile.getAbsolutePath()));
-			return null;
+		if (checkReportFile(context, context.getJacocReportPath())) {
+			File reportFile = new File(context.getRootDirectory(), context.getJacocReportPath());
+			reports.add(new JacocoResultParser().collectCoverageReport(reportFile.getAbsolutePath(), context));
 		}
 
-		context.log(String.format("Report file found at <%s> with length <%d>", reportPath, reportFile.length()));
+		if (checkReportFile(context, context.getCoberturaReportPath())) {
+			File reportFile = new File(context.getRootDirectory(), context.getCoberturaReportPath());
+			reports.add(new GcovResultParser().collectCoverageReport(reportFile.getAbsolutePath(), context));
+		}
 
-		// TODO more converted can be specified
-		ICoverageCoverter converter = new JacocoResultParser();
+		return reports;
+	}
 
-		return converter.collectCoverageReport(reportFile.getAbsolutePath(), context);
+	private static boolean checkReportFile(ExecutionContext context, String reportPath) {
+		if (StringUtils.isNotBlank(reportPath)) {
+			File rootDirectory = context.getRootDirectory();
+			File reportFile = new File(rootDirectory, reportPath);
+
+			// validate report file - it should be exists
+			if (!reportFile.exists()) {
+				context.log(String.format("Report file cannot be found at path <%s>", reportFile.getAbsolutePath()));
+				return false;
+			}
+
+			context.log(String.format("Report file found at <%s> with length <%d>", reportPath, reportFile.length()));
+			return true;
+		}
+		return false;
 	}
 
 }

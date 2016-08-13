@@ -5,11 +5,12 @@
 // Generated on: 2016.07.30 at 04:15:50 PM CEST
 //
 
-package com.intland.jenkins.gcovr;
+package com.intland.jenkins.gcovr.model;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
@@ -25,12 +26,17 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
- *     &lt;extension base="{}classes">
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       &lt;sequence>
+ *         &lt;element ref="{}methods"/>
+ *         &lt;element ref="{}lines"/>
+ *       &lt;/sequence>
  *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
+ *       &lt;attribute name="filename" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
  *       &lt;attribute name="line-rate" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
  *       &lt;attribute name="branch-rate" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
  *       &lt;attribute name="complexity" use="required" type="{http://www.w3.org/2001/XMLSchema}anySimpleType" />
- *     &lt;/extension>
+ *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
@@ -38,13 +44,20 @@ import javax.xml.bind.annotation.XmlType;
  *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "")
-@XmlRootElement(name = "package")
-public class Package extends Classes {
+@XmlType(name = "", propOrder = { "methods", "lines" })
+@XmlRootElement(name = "class")
+public class Class {
 
+	@XmlElement(required = true)
+	protected Methods methods;
+	@XmlElement(required = true)
+	protected Lines lines;
 	@XmlAttribute(name = "name", required = true)
 	@XmlSchemaType(name = "anySimpleType")
 	protected String name;
+	@XmlAttribute(name = "filename", required = true)
+	@XmlSchemaType(name = "anySimpleType")
+	protected String filename;
 	@XmlAttribute(name = "line-rate", required = true)
 	@XmlSchemaType(name = "anySimpleType")
 	protected String lineRate;
@@ -54,6 +67,48 @@ public class Package extends Classes {
 	@XmlAttribute(name = "complexity", required = true)
 	@XmlSchemaType(name = "anySimpleType")
 	protected String complexity;
+
+	/**
+	 * Gets the value of the methods property.
+	 * 
+	 * @return possible object is {@link Methods }
+	 * 
+	 */
+	public Methods getMethods() {
+		return this.methods;
+	}
+
+	/**
+	 * Sets the value of the methods property.
+	 * 
+	 * @param value
+	 *            allowed object is {@link Methods }
+	 * 
+	 */
+	public void setMethods(Methods value) {
+		this.methods = value;
+	}
+
+	/**
+	 * Gets the value of the lines property.
+	 * 
+	 * @return possible object is {@link Lines }
+	 * 
+	 */
+	public Lines getLines() {
+		return this.lines;
+	}
+
+	/**
+	 * Sets the value of the lines property.
+	 * 
+	 * @param value
+	 *            allowed object is {@link Lines }
+	 * 
+	 */
+	public void setLines(Lines value) {
+		this.lines = value;
+	}
 
 	/**
 	 * Gets the value of the name property.
@@ -74,6 +129,27 @@ public class Package extends Classes {
 	 */
 	public void setName(String value) {
 		this.name = value;
+	}
+
+	/**
+	 * Gets the value of the filename property.
+	 * 
+	 * @return possible object is {@link String }
+	 * 
+	 */
+	public String getFilename() {
+		return this.filename;
+	}
+
+	/**
+	 * Sets the value of the filename property.
+	 * 
+	 * @param value
+	 *            allowed object is {@link String }
+	 * 
+	 */
+	public void setFilename(String value) {
+		this.filename = value;
 	}
 
 	/**

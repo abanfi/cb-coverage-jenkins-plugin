@@ -5,14 +5,13 @@
 // Generated on: 2016.07.30 at 04:15:50 PM CEST
 //
 
-package com.intland.jenkins.gcovr;
+package com.intland.jenkins.gcovr.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -29,7 +28,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element ref="{}package" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element ref="{}method" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -39,40 +38,39 @@ import javax.xml.bind.annotation.XmlType;
  *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = { "_package" })
-@XmlRootElement(name = "packages")
-public class Packages {
+@XmlType(name = "", propOrder = { "method" })
+@XmlRootElement(name = "methods")
+public class Methods {
 
-	@XmlElement(name = "package")
-	protected List<Package> _package;
+	protected List<Method> method;
 
 	/**
-	 * Gets the value of the package property.
+	 * Gets the value of the method property.
 	 * 
 	 * <p>
 	 * This accessor method returns a reference to the live list, not a
 	 * snapshot. Therefore any modification you make to the returned list will
 	 * be present inside the JAXB object. This is why there is not a
-	 * <CODE>set</CODE> method for the package property.
+	 * <CODE>set</CODE> method for the method property.
 	 * 
 	 * <p>
 	 * For example, to add a new item, do as follows:
 	 * 
 	 * <pre>
-	 * getPackage().add(newItem);
+	 * getMethod().add(newItem);
 	 * </pre>
 	 * 
 	 * 
 	 * <p>
-	 * Objects of the following type(s) are allowed in the list {@link Package }
+	 * Objects of the following type(s) are allowed in the list {@link Method }
 	 * 
 	 * 
 	 */
-	public List<Package> getPackage() {
-		if (this._package == null) {
-			this._package = new ArrayList<Package>();
+	public List<Method> getMethod() {
+		if (this.method == null) {
+			this.method = new ArrayList<Method>();
 		}
-		return this._package;
+		return this.method;
 	}
 
 }

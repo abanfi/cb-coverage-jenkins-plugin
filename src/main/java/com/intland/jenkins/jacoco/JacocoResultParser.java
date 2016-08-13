@@ -21,6 +21,7 @@ import com.intland.jenkins.coverage.ICoverageCoverter;
 import com.intland.jenkins.coverage.markup.HTMLMarkupBuilder;
 import com.intland.jenkins.coverage.model.CoverageBase;
 import com.intland.jenkins.coverage.model.CoverageReport;
+import com.intland.jenkins.coverage.model.CoverageReport.CoverageType;
 import com.intland.jenkins.coverage.model.DirectoryCoverage;
 import com.intland.jenkins.jacoco.model.Class;
 import com.intland.jenkins.jacoco.model.Counter;
@@ -101,6 +102,8 @@ public class JacocoResultParser implements ICoverageCoverter {
 
 		this.setCoverage(coverageReport, report.getCounter());
 		coverageReport.setMarkup(HTMLMarkupBuilder.genearteSummary(report));
+
+		coverageReport.setType(CoverageType.JACOCO);
 
 		return coverageReport;
 	}

@@ -1,8 +1,0 @@
-[{Html
-
-<div class="miniprogressbar" style="width: 120px;" title="Missed: %d Covered: %d">
-	<div style="width:%d%%;" class="testingProgressBarPassed"></div>
-	<div style="width:%d%%;" class="testingProgressBarFailed"></div>
-	<label style="font-weight:bold">%d%%</label>
-</div>
-}]

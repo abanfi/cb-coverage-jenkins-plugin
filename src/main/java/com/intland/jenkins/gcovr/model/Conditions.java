@@ -5,7 +5,7 @@
 // Generated on: 2016.07.30 at 04:15:50 PM CEST
 //
 
-package com.intland.jenkins.gcovr;
+package com.intland.jenkins.gcovr.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element ref="{}line" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element ref="{}condition" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -38,39 +38,40 @@ import javax.xml.bind.annotation.XmlType;
  *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = { "line" })
-@XmlRootElement(name = "lines")
-public class Lines {
+@XmlType(name = "", propOrder = { "condition" })
+@XmlRootElement(name = "conditions")
+public class Conditions {
 
-	protected List<Line> line;
+	protected List<Condition> condition;
 
 	/**
-	 * Gets the value of the line property.
+	 * Gets the value of the condition property.
 	 * 
 	 * <p>
 	 * This accessor method returns a reference to the live list, not a
 	 * snapshot. Therefore any modification you make to the returned list will
 	 * be present inside the JAXB object. This is why there is not a
-	 * <CODE>set</CODE> method for the line property.
+	 * <CODE>set</CODE> method for the condition property.
 	 * 
 	 * <p>
 	 * For example, to add a new item, do as follows:
 	 * 
 	 * <pre>
-	 * getLine().add(newItem);
+	 * getCondition().add(newItem);
 	 * </pre>
 	 * 
 	 * 
 	 * <p>
-	 * Objects of the following type(s) are allowed in the list {@link Line }
+	 * Objects of the following type(s) are allowed in the list {@link Condition
+	 * }
 	 * 
 	 * 
 	 */
-	public List<Line> getLine() {
-		if (this.line == null) {
-			this.line = new ArrayList<Line>();
+	public List<Condition> getCondition() {
+		if (this.condition == null) {
+			this.condition = new ArrayList<Condition>();
 		}
-		return this.line;
+		return this.condition;
 	}
 
 }
