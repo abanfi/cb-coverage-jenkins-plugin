@@ -2,6 +2,8 @@ package com.intland.jenkins.jacoco;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -9,6 +11,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.sax.SAXSource;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
@@ -82,6 +85,16 @@ public class JacocoResultParser implements ICoverageCoverter {
 
 		// simple packages
 		List<Package> packages = report.getPackage();
+		// sort packages by name
+		Collections.sort(packages, new Comparator<Package>() {
+
+			@Override
+			public int compare(Package p1, Package p2) {
+				return ObjectUtils.compare(p1.getName(), p2.getName());
+			}
+
+		});
+
 		for (Package onePackage : packages) {
 			coverageReport.getDirectories().add(this.converPackage(onePackage));
 		}

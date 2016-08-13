@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -65,8 +66,8 @@ public class CodebeamerApiClient {
 	 * @return the found or the newly created tracker item
 	 * @throws IOException
 	 */
-	public TrackerItemDto findOrCreateTrackerItem(Integer trackerId, String name, String description)
-			throws IOException {
+	public TrackerItemDto findOrCreateTrackerItem(ExecutionContext context, Integer trackerId, String name,
+			String description) throws IOException {
 		String urlParamName = this.encodeParam(name);
 		String content = this
 				.get(String.format(this.baseUrl + "/rest/tracker/%s/items/or/name=%s/page/1", trackerId, urlParamName));
@@ -79,7 +80,7 @@ public class CodebeamerApiClient {
 			testConfig.setName(name);
 			testConfig.setTracker("/tracker/" + trackerId);
 			testConfig.setDescription(description);
-			return this.postTrackerItem(testConfig);
+			return this.postTrackerItem(context, testConfig);
 		}
 	}
 
@@ -92,9 +93,9 @@ public class CodebeamerApiClient {
 		}
 	}
 
-	public TrackerItemDto postTrackerItem(TestRunDto testRunDto) throws IOException {
+	public TrackerItemDto postTrackerItem(ExecutionContext context, TestRunDto testRunDto) throws IOException {
 		String content = this.objectMapper.writeValueAsString(testRunDto);
-		return this.post(content);
+		return this.post(context, content);
 	}
 
 	/**
@@ -153,10 +154,11 @@ public class CodebeamerApiClient {
 		return trackerSchemaDto.doesTypeContain(testCaseType);
 	}
 
-	public TrackerItemDto updateTrackerItemStatus(Integer id, String status) throws IOException {
+	public TrackerItemDto updateTrackerItemStatus(ExecutionContext context, Integer id, String status)
+			throws IOException {
 		TestCaseDto testCaseDto = new TestCaseDto(id, status);
 		String content = this.objectMapper.writeValueAsString(testCaseDto);
-		return this.put(content);
+		return this.put(context, content);
 	}
 
 	public TrackerItemDto getTrackerItem(Integer itemId) throws IOException {
@@ -185,7 +187,11 @@ public class CodebeamerApiClient {
 		return result;
 	}
 
-	private TrackerItemDto post(String content) throws IOException {
+	private TrackerItemDto post(ExecutionContext context, String content) throws IOException {
+
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+
 		HttpPost post = new HttpPost(String.format("%s/rest/item", this.baseUrl));
 		post.setConfig(this.requestConfig);
 
@@ -197,7 +203,18 @@ public class CodebeamerApiClient {
 			HttpResponse response = this.client.execute(post);
 			String json = new BasicResponseHandler().handleResponse(response);
 			post.releaseConnection();
-			return this.objectMapper.readValue(json, TrackerItemDto.class);
+
+			stopWatch.stop();
+
+			context.log("Post request completed in: " + stopWatch.getTime());
+
+			stopWatch = new StopWatch();
+			stopWatch.start();
+
+			TrackerItemDto readValue = this.objectMapper.readValue(json, TrackerItemDto.class);
+			stopWatch.stop();
+			context.log("Post result parsed in: " + stopWatch.getTime());
+			return readValue;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -205,12 +222,16 @@ public class CodebeamerApiClient {
 
 	}
 
-	public TrackerItemDto put(Object dto) throws IOException {
+	public TrackerItemDto put(ExecutionContext context, Object dto) throws IOException {
 		String content = this.objectMapper.writeValueAsString(dto);
-		return this.put(content);
+		return this.put(context, content);
 	}
 
-	private TrackerItemDto put(String content) throws IOException {
+	private TrackerItemDto put(ExecutionContext context, String content) throws IOException {
+
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+
 		HttpPut put = new HttpPut(String.format("%s/rest/item", this.baseUrl));
 		put.setConfig(this.requestConfig);
 
@@ -222,7 +243,16 @@ public class CodebeamerApiClient {
 		String json = new BasicResponseHandler().handleResponse(response);
 		put.releaseConnection();
 
-		return this.objectMapper.readValue(json, TrackerItemDto.class);
+		stopWatch.stop();
+		context.log("Put request completed in: " + stopWatch.getTime());
+		stopWatch = new StopWatch();
+		stopWatch.start();
+
+		TrackerItemDto readValue = this.objectMapper.readValue(json, TrackerItemDto.class);
+		stopWatch.stop();
+		context.log("Post result parsed in: " + stopWatch.getTime());
+
+		return readValue;
 	}
 
 	private String get(String url) throws IOException {

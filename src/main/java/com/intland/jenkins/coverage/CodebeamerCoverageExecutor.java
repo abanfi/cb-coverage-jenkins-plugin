@@ -164,7 +164,7 @@ public class CodebeamerCoverageExecutor {
 	private static void updateTrackerItemStatus(TrackerItemDto coverageTestSet, String status, ExecutionContext context)
 			throws IOException {
 		TestCaseDto testCaseDto = new TestCaseDto(coverageTestSet.getId(), status);
-		context.getClient().put(testCaseDto);
+		context.getClient().put(context, testCaseDto);
 	}
 
 	private static void updateTestSetTestCases(TrackerItemDto coverageTestSet, Collection<Integer> testCases,
@@ -178,7 +178,7 @@ public class CodebeamerCoverageExecutor {
 		trackerItemDto.setUri(coverageTestSet.getUri());
 		trackerItemDto.setTestCases(testCasesList);
 
-		context.getClient().put(trackerItemDto);
+		context.getClient().put(context, trackerItemDto);
 	}
 
 	private static void createTestCaseRun(Integer testConfigurationId, TrackerItemDto coverageTestSet,
@@ -195,10 +195,11 @@ public class CodebeamerCoverageExecutor {
 		context.logFormat("Generated markup character count: <%d>", coverageBase.getMarkup().length());
 
 		// create test run item
-		TrackerItemDto testRunItem = context.getClient().postTrackerItem(testRunDto);
+		TrackerItemDto testRunItem = context.getClient().postTrackerItem(context, testRunDto);
+
 		TestCaseDto testCaseDto = new TestCaseDto(testRunItem.getId(), "Completed");
 		testCaseDto.setSpentMillis(0l);
-		context.getClient().put(testCaseDto);
+		context.getClient().put(context, testCaseDto);
 	}
 
 	/**
@@ -285,7 +286,7 @@ public class CodebeamerCoverageExecutor {
 		testRunDto.setTestSet(testSetDto.getId());
 		testRunDto.setDescription(report.getMarkup());
 		testRunDto.setDescFormat("Html");
-		return context.getClient().postTrackerItem(testRunDto);
+		return context.getClient().postTrackerItem(context, testRunDto);
 	}
 
 	/**
@@ -302,7 +303,7 @@ public class CodebeamerCoverageExecutor {
 		Integer testSetTrackerId = context.getTestSetTrackerId();
 
 		// TODO Auto-generated method stub
-		return context.getClient().findOrCreateTrackerItem(testSetTrackerId, name, "--");
+		return context.getClient().findOrCreateTrackerItem(context, testSetTrackerId, name, "--");
 	}
 
 	/**
@@ -522,12 +523,12 @@ public class CodebeamerCoverageExecutor {
 			}
 
 			// create the tracker item and log the result
-			newTackerItem = context.getClient().postTrackerItem(testCaseDto);
+			newTackerItem = context.getClient().postTrackerItem(context, testCaseDto);
 			context.logFormat("New test case <%d> created in tracker <%s> with parent <%s>", newTackerItem.getId(),
 					testCaseTrackerId, parentId);
 
 			// update status to accepted
-			context.getClient().updateTrackerItemStatus(newTackerItem.getId(), "Accepted");
+			context.getClient().updateTrackerItemStatus(context, newTackerItem.getId(), "Accepted");
 
 			parentId = newTackerItem.getId();
 

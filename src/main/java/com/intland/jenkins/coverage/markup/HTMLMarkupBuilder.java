@@ -1,6 +1,9 @@
 package com.intland.jenkins.coverage.markup;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -32,6 +35,8 @@ public class HTMLMarkupBuilder {
 
 	private static String[] COLUMNS = new String[] { INSTRUCTION, BRANCH, COMPLEXITY, LINE, METHOD, CLASS };
 
+	private static Set<String> WRITE_COUNT_COLUMNS = new HashSet<>(Arrays.asList(LINE, METHOD, CLASS));
+
 	/**
 	 * Generates a HTML markup for the specified class
 	 *
@@ -51,17 +56,21 @@ public class HTMLMarkupBuilder {
 
 		// method part
 		builder.append("<br><h2><b>Coverage Breakdown by Method</b></h2>");
-		builder.append(header);
-		for (Method method : clazz.getMethod()) {
-			builder.append("<tr>");
-			builder.append("<td>");
-			builder.append(method.getName());
-			builder.append("</td>");
 
-			appendColumns(builder, method.getCounter());
-			builder.append("</tr>");
+		if (clazz.getMethod() != null) {
+			builder.append(
+					StringUtils.replace(header, "Element", String.format("Element (%d)", clazz.getMethod().size())));
+			for (Method method : clazz.getMethod()) {
+				builder.append("<tr>");
+				builder.append("<td>");
+				builder.append(method.getName());
+				builder.append("</td>");
+
+				appendColumns(builder, method.getCounter());
+				builder.append("</tr>");
+			}
+			builder.append("</tbody></table>");
 		}
-		builder.append("</tbody></table>");
 
 		return builder.toString();
 	}
@@ -86,18 +95,21 @@ public class HTMLMarkupBuilder {
 
 		// classes part
 		builder.append("<br><h2><b>Coverage Breakdown by Class</b></h2>");
-		builder.append(header);
-		for (com.intland.jenkins.jacoco.model.Class clazz : pack.getClazz()) {
+		if (pack.getClazz() != null) {
+			builder.append(
+					StringUtils.replace(header, "Element", String.format("Element (%d)", pack.getClazz().size())));
+			for (com.intland.jenkins.jacoco.model.Class clazz : pack.getClazz()) {
 
-			builder.append("<tr>");
-			builder.append("<td>");
-			builder.append(StringUtils.substringAfterLast(clazz.getName(), "/"));
-			builder.append("</td>");
+				builder.append("<tr>");
+				builder.append("<td>");
+				builder.append(StringUtils.substringAfterLast(clazz.getName(), "/"));
+				builder.append("</td>");
 
-			appendColumns(builder, clazz.getCounter());
-			builder.append("</tr>");
+				appendColumns(builder, clazz.getCounter());
+				builder.append("</tr>");
+			}
+			builder.append("</tbody></table>");
 		}
-		builder.append("</tbody></table>");
 
 		return builder.toString();
 	}
@@ -120,19 +132,23 @@ public class HTMLMarkupBuilder {
 		builder.append("</tr></tbody></table>");
 
 		builder.append("<br><h2><b>Coverage Breakdown by Package</b></h2>");
-		builder.append(header);
-		for (Package pack : report.getPackage()) {
 
-			builder.append("<tr>");
-			builder.append("<td>");
+		if (report.getPackage() != null) {
 			builder.append(
-					StringUtils.isBlank(pack.getName()) ? "default" : StringUtils.replace(pack.getName(), "/", "."));
-			builder.append("</td>");
+					StringUtils.replace(header, "Element", String.format("Element (%d)", report.getPackage().size())));
+			for (Package pack : report.getPackage()) {
 
-			appendColumns(builder, pack.getCounter());
-			builder.append("</tr>");
+				builder.append("<tr>");
+				builder.append("<td>");
+				builder.append(StringUtils.isBlank(pack.getName()) ? "default"
+						: StringUtils.replace(pack.getName(), "/", "."));
+				builder.append("</td>");
+
+				appendColumns(builder, pack.getCounter());
+				builder.append("</tr>");
+			}
+			builder.append("</tbody></table>");
 		}
-		builder.append("</tbody></table>");
 
 		return builder.toString();
 	}
@@ -184,7 +200,8 @@ public class HTMLMarkupBuilder {
 			if (counter.getType().equals(type)) {
 				Integer all = counter.getMissed() + counter.getCovered();
 				Double percent = (counter.getCovered() / (double) all) * 100d;
-				return generateDiagramMarkup(counter.getMissed(), counter.getCovered(), percent.intValue());
+				return generateDiagramMarkup(WRITE_COUNT_COLUMNS.contains(type), counter.getMissed(),
+						counter.getCovered(), percent.intValue());
 			}
 		}
 
@@ -202,7 +219,8 @@ public class HTMLMarkupBuilder {
 	 *            coverage percentage
 	 * @return cell markup
 	 */
-	private static String generateDiagramMarkup(Integer missed, Integer covered, Integer coveredPercent) {
+	private static String generateDiagramMarkup(boolean writeOutCounts, Integer missed, Integer covered,
+			Integer coveredPercent) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("<div class=\"miniprogressbar\" style=\"width: 120px; height: 20px;\"> ");
 		builder.append("<div style=\"width:");
@@ -213,8 +231,13 @@ public class HTMLMarkupBuilder {
 		builder.append("%; background-color:#CC3F44;\">");
 		builder.append("</div><div style=\"position: absolute; font-weight: bold; width: 100%; ");
 		builder.append("background: transparent; text-align: center; color: white; line-height: 20px;\">");
-		builder.append(coveredPercent);
-		builder.append("%</div></div>");
+		if (writeOutCounts) {
+			builder.append(String.format("%d/%d (%d%%)", covered + missed, missed, coveredPercent));
+		} else {
+			builder.append(coveredPercent);
+			builder.append("%");
+		}
+		builder.append("</div></div>");
 		return builder.toString();
 	}
 }
